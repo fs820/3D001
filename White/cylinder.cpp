@@ -27,7 +27,7 @@ void InitCylinder(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX_CYLI * CYLINDER_MAX,
+		sizeof(VERTEX_3D) * VT_MAX_CYLI,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -46,7 +46,7 @@ void InitCylinder(void)
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
-		sizeof(WORD) * INDEX_CYLI_NUM * CYLINDER_MAX,
+		sizeof(WORD) * INDEX_CYLI_NUM,
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
@@ -54,7 +54,7 @@ void InitCylinder(void)
 		NULL
 	);
 
-	int nCntCylinder, nCntCylinder2, nCntCylinder3;
+	int nCntCylinder, nCntCylinder2;
 	for (nCntCylinder = 0; nCntCylinder < CYLINDER_MAX; nCntCylinder++)
 	{
 		g_aCylinder[nCntCylinder].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -67,29 +67,26 @@ void InitCylinder(void)
 
 	g_pVtxBuffCylinder->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntCylinder = 0; nCntCylinder < CYLINDER_MAX; nCntCylinder++)
-	{//メッシュフィールド数
-		for (nCntCylinder2 = 0; nCntCylinder2 < CYLINDER_VNUM + 1; nCntCylinder2++)
-		{//1枚分のZ軸のループ
-			for (nCntCylinder3 = 0; nCntCylinder3 < CYLINDER_HNUM + 1; nCntCylinder3++)
-			{//1枚分のX軸のループ
-				//座標設定
-				float fangle = (360.0f / CYLINDER_HNUM) * nCntCylinder3 * (D3DX_PI / 180.0f);
-				pVtx[nCntCylinder2 * (CYLINDER_HNUM + 1) + nCntCylinder3].pos = D3DXVECTOR3(g_aCylinder[nCntCylinder].pos.x + sinf(fangle) * CYLINDER_RADIUS, g_aCylinder[nCntCylinder].pos.y + CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder2, g_aCylinder[nCntCylinder].pos.z + cosf(fangle) * CYLINDER_RADIUS);
+	for (nCntCylinder = 0; nCntCylinder < CYLINDER_VNUM + 1; nCntCylinder++)
+	{//1枚分のZ軸のループ
+		for (nCntCylinder2 = 0; nCntCylinder2 < CYLINDER_HNUM + 1; nCntCylinder2++)
+		{//1枚分のX軸のループ
+			//座標設定
+			float fangle = (360.0f / CYLINDER_HNUM) * nCntCylinder2 * (D3DX_PI / 180.0f);
+			pVtx[nCntCylinder * (CYLINDER_HNUM + 1) + nCntCylinder2].pos = D3DXVECTOR3(sinf(fangle) * CYLINDER_RADIUS, CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder, cosf(fangle) * CYLINDER_RADIUS);
 
-				//nor
-				D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, g_aCylinder[nCntCylinder].pos.y + CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder2, 0.0f), dpos = D3DXVECTOR3(g_aCylinder[nCntCylinder].pos.x + sinf(fangle) * CYLINDER_RADIUS, g_aCylinder[nCntCylinder].pos.y + CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder2, g_aCylinder[nCntCylinder].pos.z + cosf(fangle) * CYLINDER_RADIUS);
-				D3DXVec3Normalize(&npos, &dpos);
-				pVtx[nCntCylinder2 * (CYLINDER_HNUM + 1) + nCntCylinder3].nor = npos;
+			//nor
+			D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder, 0.0f), dpos = D3DXVECTOR3(sinf(fangle) * CYLINDER_RADIUS, CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder, cosf(fangle) * CYLINDER_RADIUS);
+			npos = npos - dpos;
+			D3DXVec3Normalize(&npos, &npos);
+			pVtx[nCntCylinder * (CYLINDER_HNUM + 1) + nCntCylinder2].nor = npos;
 
-				//カラー
-				pVtx[nCntCylinder2 * (CYLINDER_HNUM + 1) + nCntCylinder3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+			//カラー
+			pVtx[nCntCylinder * (CYLINDER_HNUM + 1) + nCntCylinder2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-				//テクスチャ
-				pVtx[nCntCylinder2 * (CYLINDER_HNUM + 1) + nCntCylinder3].tex = D3DXVECTOR2(((((CYLINDER_RADIUS + CYLINDER_RADIUS) * D3DX_PI) / CYLINDER_WIDTH_DEF) / CYLINDER_HNUM) * nCntCylinder3, ((CYLINDER_HEIGHT / CYLINDER_HEIGHT_DEF) / CYLINDER_VNUM) * nCntCylinder2);
-			}
+			//テクスチャ
+			pVtx[nCntCylinder * (CYLINDER_HNUM + 1) + nCntCylinder2].tex = D3DXVECTOR2(((((CYLINDER_RADIUS + CYLINDER_RADIUS) * D3DX_PI) / CYLINDER_WIDTH_DEF) / CYLINDER_HNUM) * nCntCylinder2, ((CYLINDER_HEIGHT / CYLINDER_HEIGHT_DEF) / CYLINDER_VNUM) * nCntCylinder);
 		}
-		pVtx += VT_MAX_CYLI;
 	}
 
 	g_pVtxBuffCylinder->Unlock();
@@ -97,22 +94,18 @@ void InitCylinder(void)
 	WORD* pIdx;
 	g_pIdxBuffCylinder->Lock(0, 0, (void**)&pIdx, 0);
 
-	for (nCntCylinder = 0; nCntCylinder < CYLINDER_MAX; nCntCylinder++)
+	for (nCntCylinder = 0; nCntCylinder < INDEX_CYLI_NUM - (CYLINDER_VNUM - 1) * 2; nCntCylinder++)
 	{
-		for (nCntCylinder2 = 0; nCntCylinder2 < INDEX_CYLI_NUM - (CYLINDER_VNUM - 1) * 2; nCntCylinder2++)
+		if (nCntCylinder % ((CYLINDER_HNUM + 1) * 2) == 0 && nCntCylinder != 0)
 		{
-			if (nCntCylinder2 % ((CYLINDER_HNUM + 1) * 2) == 0 && nCntCylinder2 != 0)
-			{
-				//インデックス指定
-				pIdx[nCntCylinder2 - 2 + ((nCntCylinder2 / ((CYLINDER_HNUM + 1) * 2)) * 2)] = (CYLINDER_HNUM + 1) - (CYLINDER_HNUM + 1) * ((nCntCylinder2 - 1) % 2) + ((nCntCylinder2 - 1) / 2);
-				//インデックス指定
-				pIdx[nCntCylinder2 - 1 + ((nCntCylinder2 / ((CYLINDER_HNUM + 1) * 2)) * 2)] = (CYLINDER_HNUM + 1) - (CYLINDER_HNUM + 1) * (nCntCylinder2 % 2) + (nCntCylinder2 / 2);
-			}
-
 			//インデックス指定
-			pIdx[nCntCylinder2 + ((nCntCylinder2 / ((CYLINDER_HNUM + 1) * 2)) * 2)] = (CYLINDER_HNUM + 1) - (CYLINDER_HNUM + 1) * (nCntCylinder2 % 2) + (nCntCylinder2 / 2);
+			pIdx[nCntCylinder - 2 + ((nCntCylinder / ((CYLINDER_HNUM + 1) * 2)) * 2)] = (CYLINDER_HNUM + 1) - (CYLINDER_HNUM + 1) * ((nCntCylinder - 1) % 2) + ((nCntCylinder - 1) / 2);
+			//インデックス指定
+			pIdx[nCntCylinder - 1 + ((nCntCylinder / ((CYLINDER_HNUM + 1) * 2)) * 2)] = (CYLINDER_HNUM + 1) - (CYLINDER_HNUM + 1) * (nCntCylinder % 2) + (nCntCylinder / 2);
 		}
-		pIdx += INDEX_CYLI_NUM;
+
+		//インデックス指定
+		pIdx[nCntCylinder + ((nCntCylinder / ((CYLINDER_HNUM + 1) * 2)) * 2)] = (CYLINDER_HNUM + 1) - (CYLINDER_HNUM + 1) * (nCntCylinder % 2) + (nCntCylinder / 2);
 	}
 
 	g_pIdxBuffCylinder->Unlock();
@@ -148,22 +141,7 @@ void UninitCylinder(void)
 //-------------------
 void UpdateCylinder(void)
 {
-	//int nCntCylinder, nCntCylinder2, nCntCylinder3;
-	//for (nCntCylinder = 0; nCntCylinder < CYLINDER_MAX; nCntCylinder++)
-	//{//メッシュフィールド数
-	//	if (g_aCylinder[nCntCylinder].bUse)
-	//	{
-	//		for (nCntCylinder2 = 0; nCntCylinder2 < CYLINDER_VNUM + 1; nCntCylinder2++)
-	//		{//1枚分のZ軸のループ
-	//			for (nCntCylinder3 = 0; nCntCylinder3 < CYLINDER_HNUM + 1; nCntCylinder3++)
-	//			{//1枚分のX軸のループ
-	//				//座標設定
-	//				float fangle = (360.0f / CYLINDER_HNUM) * nCntCylinder3 * (D3DX_PI / 180.0f);
-	//				SetEffect(D3DXVECTOR3(g_aCylinder[nCntCylinder].pos.x + sinf(fangle) * CYLINDER_RADIUS, g_aCylinder[nCntCylinder].pos.y + CYLINDER_HEIGHT - (CYLINDER_HEIGHT / CYLINDER_VNUM) * nCntCylinder2, g_aCylinder[nCntCylinder].pos.z + cosf(fangle) * CYLINDER_RADIUS), D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f), 2, TYPE_NORMAL);
-	//			}
-	//		}
-	//	}
-	//}
+
 }
 
 //-------------------
@@ -215,49 +193,7 @@ void DrawCylinder(void)
 				0,
 				0,
 				VT_MAX_CYLI,//頂点数
-				nCntCylinder * INDEX_CYLI_NUM,
-				POLYGON_CYLI_NUM//ポリゴンの個数
-			);
-		}
-	}
-	for (nCntCylinder = 0; nCntCylinder < CYLINDER_MAX; nCntCylinder++)
-	{
-		if (g_aCylinder[nCntCylinder].bUse && g_aCylinder[nCntCylinder].bAlpha)
-		{
-			//マトリックス初期化
-			D3DXMatrixIdentity(&g_aCylinder[nCntCylinder].mtxWorld);
-
-			//向きの反映
-			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_aCylinder[nCntCylinder].rot.y, g_aCylinder[nCntCylinder].rot.x, g_aCylinder[nCntCylinder].rot.z);
-			D3DXMatrixMultiply(&g_aCylinder[nCntCylinder].mtxWorld, &g_aCylinder[nCntCylinder].mtxWorld, &mtxRot);
-
-			//位置の計算
-			D3DXMatrixTranslation(&mtxTrans, g_aCylinder[nCntCylinder].pos.x, g_aCylinder[nCntCylinder].pos.y, g_aCylinder[nCntCylinder].pos.z);
-			D3DXMatrixMultiply(&g_aCylinder[nCntCylinder].mtxWorld, &g_aCylinder[nCntCylinder].mtxWorld, &mtxTrans);
-
-			//ワールドマトリックスの設定
-			pDevice->SetTransform(D3DTS_WORLD, &g_aCylinder[nCntCylinder].mtxWorld);
-
-			//インデックスバッファをデータストリームに設定
-			pDevice->SetIndices(g_pIdxBuffCylinder);
-
-			//頂点バッファ
-			pDevice->SetStreamSource(0, g_pVtxBuffCylinder, 0, sizeof(VERTEX_3D));
-
-			//頂点フォーマットの設定
-			pDevice->SetFVF(FVF_VERTEX_3D);
-
-			//テクスチャの設定
-			pDevice->SetTexture(0, g_pTextureCylinder);
-
-			//ポリゴンの描画
-			pDevice->DrawIndexedPrimitive
-			(
-				D3DPT_TRIANGLESTRIP,//タイプ
 				0,
-				0,
-				VT_MAX_CYLI,//頂点数
-				nCntCylinder * INDEX_CYLI_NUM,
 				POLYGON_CYLI_NUM//ポリゴンの個数
 			);
 		}

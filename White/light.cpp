@@ -103,28 +103,64 @@ void InitLight(void)
 	//有効化
 	pDevice->LightEnable(3, TRUE);
 
+	//種類
+	g_light[8].Type = D3DLIGHT_DIRECTIONAL;
+	//拡散光
+	g_light[8].Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//環境光
+	g_light[8].Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//鏡面反射光
+	g_light[8].Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//方向
+	g_vecDir = D3DXVECTOR3(0.7f, -0.1f, -0.2f);
+	//正規化
+	D3DXVec3Normalize(&g_vecDir, &g_vecDir);
+	g_light[8].Direction = g_vecDir;
+	//ライトセット
+	pDevice->SetLight(8, &g_light[8]);
+	//有効化
+	pDevice->LightEnable(8, TRUE);
+
+	//種類
+	g_light[9].Type = D3DLIGHT_DIRECTIONAL;
+	//拡散光
+	g_light[9].Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//環境光
+	g_light[9].Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//鏡面反射光
+	g_light[9].Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//方向
+	g_vecDir = D3DXVECTOR3(0.7f, -0.1f, -0.2f);
+	//正規化
+	D3DXVec3Normalize(&g_vecDir, &g_vecDir);
+	g_light[9].Direction = g_vecDir;
+	//ライトセット
+	pDevice->SetLight(9, &g_light[9]);
+	//有効化
+	pDevice->LightEnable(9, TRUE);
+
 	//-----------------------
 	// スポットライトの設定
 	//-----------------------
 	//種類
 	g_light[4].Type = D3DLIGHT_SPOT;
 	//拡散光
-	g_light[4].Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	g_light[4].Diffuse = D3DXCOLOR(10.0f, 10.0f, 10.0f, 1.0f);
 	//環境光
-	g_light[4].Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	g_light[4].Ambient = D3DXCOLOR(10.0f, 10.0f, 10.0f, 1.0f);
 	//鏡面反射光
-	g_light[4].Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	g_light[4].Specular = D3DXCOLOR(10.0f, 10.0f, 10.0f, 1.0f);
 	//位置
-	g_light[4].Position = D3DXVECTOR3(0.0f, 800.0f, 1.0f);
+	g_light[4].Position = D3DXVECTOR3(0.0f, 2000.0f, 1.0f);
 	//方向
-	g_vecDir = D3DXVECTOR3(0.0f, -0.8f, 0.0f);
+	g_vecDir = D3DXVECTOR3(0.0f, -1.0f, 0.0f);
 	//正規化
 	D3DXVec3Normalize(&g_vecDir, &g_vecDir);
 	g_light[4].Direction = g_vecDir;
 	//範囲
-	g_light[4].Range = 1000.0f;
+	g_light[4].Range = 3000.0f;
 	//コーン減衰率
-	g_light[4].Falloff = 0.1f;
+	g_light[4].Falloff = 0.01f;
 	//距離減衰率
 	g_light[4].Attenuation0 = 0.1f;
 	//コーン角度(内)
@@ -161,6 +197,52 @@ void InitLight(void)
 	pDevice->SetLight(5, &g_light[5]);
 	//有効化
 	pDevice->LightEnable(5, TRUE);
+
+	//種類
+	g_light[6].Type = D3DLIGHT_POINT;
+	//拡散光
+	g_light[6].Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//環境光
+	g_light[6].Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//鏡面反射光
+	g_light[6].Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//位置
+	g_light[6].Position = D3DXVECTOR3(-100.0f, 0.0f, 1500.0f);
+	//範囲
+	g_light[6].Range = 1000.0f;
+	//距離減衰率(一定)
+	g_light[6].Attenuation0 = 0.1f;
+	//距離減衰率(距離)
+	g_light[6].Attenuation1 = 0.0f;
+	//距離減衰率(距離*2)
+	g_light[6].Attenuation2 = 0.0f;
+	//ライトセット
+	pDevice->SetLight(6, &g_light[6]);
+	//有効化
+	pDevice->LightEnable(6, TRUE);
+
+	//種類
+	g_light[7].Type = D3DLIGHT_POINT;
+	//拡散光
+	g_light[7].Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//環境光
+	g_light[7].Ambient = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//鏡面反射光
+	g_light[7].Specular = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//位置
+	g_light[7].Position = D3DXVECTOR3(0.0f, 0.0f, 1600.0f);
+	//範囲
+	g_light[7].Range = 1000.0f;
+	//距離減衰率(一定)
+	g_light[7].Attenuation0 = 0.1f;
+	//距離減衰率(距離)
+	g_light[7].Attenuation1 = 0.0f;
+	//距離減衰率(距離*2)
+	g_light[7].Attenuation2 = 0.0f;
+	//ライトセット
+	pDevice->SetLight(7, &g_light[7]);
+	//有効化
+	pDevice->LightEnable(7, TRUE);
 }
 
 //-------------------
@@ -220,6 +302,21 @@ void UpdateLight(void)
 
 	//セット
 	pDevice->SetLight(0, &g_light[0]);
+
+	static int nCnt = 0;
+	if (nCnt % 60 == 0)
+	{
+		//ベクトルを計算
+		g_vecDir = D3DXVECTOR3((((float)(rand() % 201) / 100) - 1.0f), (((float)(rand() % 201) / 100) - 1.0f), (((float)(rand() % 201) / 100) - 1.0f));
+
+		//正規化
+		D3DXVec3Normalize(&g_vecDir, &g_vecDir);
+		g_light[9].Direction = g_vecDir;
+
+		//セット
+		pDevice->SetLight(9, &g_light[9]);
+	}
+	nCnt++;
 }
 
 //--------------------------

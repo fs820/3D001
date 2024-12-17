@@ -27,7 +27,7 @@ void InitMeshField(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX_MESH * MESHFIELD_MAX,
+		sizeof(VERTEX_3D) * VT_MAX_MESH,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -46,7 +46,7 @@ void InitMeshField(void)
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
-		sizeof(WORD) * INDEX_NUM * MESHFIELD_MAX,
+		sizeof(WORD) * INDEX_NUM,
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
@@ -54,7 +54,7 @@ void InitMeshField(void)
 		NULL
 	);
 
-	int nCntMeshField, nCntMeshField2, nCntMeshField3;
+	int nCntMeshField, nCntMeshField2;
 	for (nCntMeshField = 0; nCntMeshField < MESHFIELD_MAX; nCntMeshField++)
 	{
 		g_aMeshField[nCntMeshField].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -67,26 +67,22 @@ void InitMeshField(void)
 
 	g_pVtxBuffMeshField->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntMeshField = 0; nCntMeshField < MESHFIELD_MAX; nCntMeshField++)
-	{//メッシュフィールド数
-		for (nCntMeshField2 = 0; nCntMeshField2 < MESHFIELD_ZNUM + 1; nCntMeshField2++)
-		{//1枚分のZ軸のループ
-			for (nCntMeshField3 = 0; nCntMeshField3 < MESHFIELD_XNUM + 1; nCntMeshField3++)
-			{//1枚分のX軸のループ
-				//座標設定
-				pVtx[nCntMeshField2 * (MESHFIELD_XNUM + 1) + nCntMeshField3].pos = D3DXVECTOR3(g_aMeshField[nCntMeshField].pos.x - MESHFIELD_WIDTH * 0.5f + (MESHFIELD_WIDTH / MESHFIELD_XNUM) * nCntMeshField3, g_aMeshField[nCntMeshField].pos.y + MESHFIELD_HEIGHT, g_aMeshField[nCntMeshField].pos.z + MESHFIELD_Z * 0.5f - (MESHFIELD_Z / MESHFIELD_ZNUM) * nCntMeshField2);
+	for (nCntMeshField = 0; nCntMeshField < MESHFIELD_ZNUM + 1; nCntMeshField++)
+	{//1枚分のZ軸のループ
+		for (nCntMeshField2 = 0; nCntMeshField2 < MESHFIELD_XNUM + 1; nCntMeshField2++)
+		{//1枚分のX軸のループ
+			//座標設定
+			pVtx[nCntMeshField * (MESHFIELD_XNUM + 1) + nCntMeshField2].pos = D3DXVECTOR3(-MESHFIELD_WIDTH * 0.5f + (MESHFIELD_WIDTH / MESHFIELD_XNUM) * nCntMeshField2, MESHFIELD_HEIGHT, MESHFIELD_Z * 0.5f - (MESHFIELD_Z / MESHFIELD_ZNUM) * nCntMeshField);
 
-				//nor
-				pVtx[nCntMeshField2 * (MESHFIELD_XNUM + 1) + nCntMeshField3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+			//nor
+			pVtx[nCntMeshField * (MESHFIELD_XNUM + 1) + nCntMeshField2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
-				//カラー
-				pVtx[nCntMeshField2 * (MESHFIELD_XNUM + 1) + nCntMeshField3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+			//カラー
+			pVtx[nCntMeshField * (MESHFIELD_XNUM + 1) + nCntMeshField2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-				//テクスチャ
-				pVtx[nCntMeshField2 * (MESHFIELD_XNUM + 1) + nCntMeshField3].tex = D3DXVECTOR2(((MESHFIELD_WIDTH / MESHFIELD_WIDTH_DEF) / MESHFIELD_XNUM) * nCntMeshField3, ((MESHFIELD_Z / MESHFIELD_Z_DEF) / MESHFIELD_ZNUM) * nCntMeshField2);
-			}
+			//テクスチャ
+			pVtx[nCntMeshField * (MESHFIELD_XNUM + 1) + nCntMeshField2].tex = D3DXVECTOR2(((MESHFIELD_WIDTH / MESHFIELD_WIDTH_DEF) / MESHFIELD_XNUM) * nCntMeshField2, ((MESHFIELD_Z / MESHFIELD_Z_DEF) / MESHFIELD_ZNUM) * nCntMeshField);
 		}
-		pVtx += VT_MAX_MESH;
 	}
 
 	g_pVtxBuffMeshField->Unlock();
@@ -94,22 +90,18 @@ void InitMeshField(void)
 	WORD* pIdx;
 	g_pIdxBuffMeshField->Lock(0, 0, (void**)&pIdx, 0);
 
-	for (nCntMeshField = 0; nCntMeshField < MESHFIELD_MAX; nCntMeshField++)
+	for (nCntMeshField = 0; nCntMeshField < INDEX_NUM - (MESHFIELD_ZNUM - 1) * 2; nCntMeshField++)
 	{
-		for (nCntMeshField2 = 0; nCntMeshField2 < INDEX_NUM - (MESHFIELD_ZNUM - 1) * 2; nCntMeshField2++)
+		if (nCntMeshField % ((MESHFIELD_XNUM + 1) * 2) == 0 && nCntMeshField != 0)
 		{
-			if (nCntMeshField2 % ((MESHFIELD_XNUM + 1) * 2) == 0 && nCntMeshField2 != 0)
-			{
-				//インデックス指定
-				pIdx[nCntMeshField2 - 2 + ((nCntMeshField2 / ((MESHFIELD_XNUM + 1) * 2)) * 2)] = (MESHFIELD_XNUM + 1) - (MESHFIELD_XNUM + 1) * ((nCntMeshField2 - 1) % 2) + ((nCntMeshField2 - 1) / 2);
-				//インデックス指定
-				pIdx[nCntMeshField2 - 1 + ((nCntMeshField2 / ((MESHFIELD_XNUM + 1) * 2)) * 2)] = (MESHFIELD_XNUM + 1) - (MESHFIELD_XNUM + 1) * (nCntMeshField2 % 2) + (nCntMeshField2 / 2);
-			}
-
 			//インデックス指定
-			pIdx[nCntMeshField2 + ((nCntMeshField2 / ((MESHFIELD_XNUM + 1) * 2)) * 2)] = (MESHFIELD_XNUM + 1) - (MESHFIELD_XNUM + 1) * (nCntMeshField2 % 2) + (nCntMeshField2 / 2);
+			pIdx[nCntMeshField - 2 + ((nCntMeshField / ((MESHFIELD_XNUM + 1) * 2)) * 2)] = (MESHFIELD_XNUM + 1) - (MESHFIELD_XNUM + 1) * ((nCntMeshField - 1) % 2) + ((nCntMeshField - 1) / 2);
+			//インデックス指定
+			pIdx[nCntMeshField - 1 + ((nCntMeshField / ((MESHFIELD_XNUM + 1) * 2)) * 2)] = (MESHFIELD_XNUM + 1) - (MESHFIELD_XNUM + 1) * (nCntMeshField % 2) + (nCntMeshField / 2);
 		}
-		pIdx += INDEX_NUM;
+
+		//インデックス指定
+		pIdx[nCntMeshField + ((nCntMeshField / ((MESHFIELD_XNUM + 1) * 2)) * 2)] = (MESHFIELD_XNUM + 1) - (MESHFIELD_XNUM + 1) * (nCntMeshField % 2) + (nCntMeshField / 2);
 	}
 
 	g_pIdxBuffMeshField->Unlock();
@@ -197,49 +189,7 @@ void DrawMeshField(void)
 				0,
 				0,
 				VT_MAX_MESH,//頂点数
-				nCntMeshField * INDEX_NUM,
-				POLYGON_NUM//ポリゴンの個数
-			);
-		}
-	}
-	for (nCntMeshField = 0; nCntMeshField < MESHFIELD_MAX; nCntMeshField++)
-	{
-		if (g_aMeshField[nCntMeshField].bUse && g_aMeshField[nCntMeshField].bAlpha)
-		{
-			//マトリックス初期化
-			D3DXMatrixIdentity(&g_aMeshField[nCntMeshField].mtxWorld);
-
-			//向きの反映
-			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_aMeshField[nCntMeshField].rot.y, g_aMeshField[nCntMeshField].rot.x, g_aMeshField[nCntMeshField].rot.z);
-			D3DXMatrixMultiply(&g_aMeshField[nCntMeshField].mtxWorld, &g_aMeshField[nCntMeshField].mtxWorld, &mtxRot);
-
-			//位置の計算
-			D3DXMatrixTranslation(&mtxTrans, g_aMeshField[nCntMeshField].pos.x, g_aMeshField[nCntMeshField].pos.y, g_aMeshField[nCntMeshField].pos.z);
-			D3DXMatrixMultiply(&g_aMeshField[nCntMeshField].mtxWorld, &g_aMeshField[nCntMeshField].mtxWorld, &mtxTrans);
-
-			//ワールドマトリックスの設定
-			pDevice->SetTransform(D3DTS_WORLD, &g_aMeshField[nCntMeshField].mtxWorld);
-
-			//インデックスバッファをデータストリームに設定
-			pDevice->SetIndices(g_pIdxBuffMeshField);
-
-			//頂点バッファ
-			pDevice->SetStreamSource(0, g_pVtxBuffMeshField, 0, sizeof(VERTEX_3D));
-
-			//頂点フォーマットの設定
-			pDevice->SetFVF(FVF_VERTEX_3D);
-
-			//テクスチャの設定
-			pDevice->SetTexture(0, g_pTextureMeshField);
-
-			//ポリゴンの描画
-			pDevice->DrawIndexedPrimitive
-			(
-				D3DPT_TRIANGLESTRIP,//タイプ
 				0,
-				0,
-				VT_MAX_MESH,//頂点数
-				nCntMeshField * INDEX_NUM,
 				POLYGON_NUM//ポリゴンの個数
 			);
 		}
@@ -284,7 +234,7 @@ void CollisionMeshField(void)
 			Posvec = pPlayer->pos - aPos[0];//壁に対するプレイヤーのベクトル
 			PosOldvec = pPlayer->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
 			movevec = pPlayer->pos - pPlayer->posOld;//プレイヤーの移動ベクトル
-			if ((Fieldvec.x * Posvec.y) - (Fieldvec.y * Posvec.x) <= 0.0f && (Fieldvec.x * PosOldvec.y) - (Fieldvec.y * PosOldvec.x) >= 0.0f && pPlayer->pos.z < g_aMeshField[nCntMeshField].pos.z + MESHFIELD_WIDTH * 0.5f && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMax.z > g_aMeshField[nCntMeshField].pos.z - MESHFIELD_WIDTH * 0.5f)
+			if ((Fieldvec.x * Posvec.y) - (Fieldvec.y * Posvec.x) <= 0.0f && (Fieldvec.x * PosOldvec.y) - (Fieldvec.y * PosOldvec.x) >= 0.0f && pPlayer->pos.z < g_aMeshField[nCntMeshField].pos.z + MESHFIELD_WIDTH * 0.5f && pPlayer->pos.z > g_aMeshField[nCntMeshField].pos.z - MESHFIELD_WIDTH * 0.5f)
 			{//地面の下
 				FieldCross = (Fieldvec.x * movevec.y) - (Fieldvec.y * movevec.x);
 				PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
@@ -298,8 +248,11 @@ void CollisionMeshField(void)
 					Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
 					pPlayer->pos += Dovec * 1.001f;
 					pPlayer->move.y = 0.0f;
-					pPlayer->move.y = 0.0f;
 					pPlayer->bJump = false;
+					if (pPlayer->motionType == MOTIONTYPE_JUMP)
+					{
+						pPlayer->motionType = MOTIONTYPE_LANDING;
+					}
 				}
 			}
 		}

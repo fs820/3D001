@@ -36,9 +36,15 @@ void InitStage(void)
 		g_aStage[nCntStage].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_aStage[nCntStage].move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_aStage[nCntStage].rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_aStage[nCntStage].fLength = 0.0f;
 		g_aStage[nCntStage].fAngle = 0.0f;
 		g_aStage[nCntStage].scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 		g_aStage[nCntStage].nIdxShadow = -1;
+		g_aStage[nCntStage].vtxMin = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_aStage[nCntStage].vtxMax = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_aStage[nCntStage].nNumVtx = 0;
+		g_aStage[nCntStage].sizeFVF = 0;
+		g_aStage[nCntStage].pVtxBuff = NULL;
 		g_aStage[nCntStage].bUse = false;
 	}
 }
@@ -228,13 +234,15 @@ void SetStage(char* name, D3DXVECTOR3 pos, D3DXVECTOR3 rot, D3DXVECTOR3 scale)
 			g_aStage[nCntStage].move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			g_aStage[nCntStage].rot = rot;
 			g_aStage[nCntStage].scale = scale;
-
 			g_aStage[nCntStage].vtxMax.x *= g_aStage[nCntStage].scale.x;
 			g_aStage[nCntStage].vtxMax.y *= g_aStage[nCntStage].scale.y;
 			g_aStage[nCntStage].vtxMax.z *= g_aStage[nCntStage].scale.z;
 			g_aStage[nCntStage].vtxMin.x *= g_aStage[nCntStage].scale.x;
 			g_aStage[nCntStage].vtxMin.y *= g_aStage[nCntStage].scale.y;
 			g_aStage[nCntStage].vtxMin.z *= g_aStage[nCntStage].scale.z;
+
+			g_aStage[nCntStage].fLength = sqrtf((g_aStage[nCntStage].vtxMax.x - g_aStage[nCntStage].vtxMin.x) * (g_aStage[nCntStage].vtxMax.x - g_aStage[nCntStage].vtxMin.x) + (g_aStage[nCntStage].vtxMax.z - g_aStage[nCntStage].vtxMin.z) * (g_aStage[nCntStage].vtxMax.z - g_aStage[nCntStage].vtxMin.z)) / 2.0f;
+			g_aStage[nCntStage].fAngle = atan2f((g_aStage[nCntStage].vtxMax.x - g_aStage[nCntStage].vtxMin.x), (g_aStage[nCntStage].vtxMax.z - g_aStage[nCntStage].vtxMin.z));//角度
 
 			g_aStage[nCntStage].nIdxShadow = SetShadow(g_aStage[nCntStage].pos, g_aStage[nCntStage].rot);
 			g_aStage[nCntStage].bUse = true;
@@ -265,14 +273,14 @@ bool CollisionStage(Stage** pStage)
 	{//壁の数
 		if (g_aStage[nCntStage].bUse)
 		{//使っている透明でない壁
-			aPos[0] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMin.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMax.z * cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f));
-			aPos[1] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMin.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMin.z * cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f));
-			aPos[2] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMax.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMin.z * cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f));
-			aPos[3] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMax.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMax.z * cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f));
-			aPos[4] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMin.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y, g_aStage[nCntStage].pos.z);
-			aPos[5] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMax.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y, g_aStage[nCntStage].pos.z);
-			aPos[6] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMax.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z);
-			aPos[7] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + g_aStage[nCntStage].vtxMin.x * sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f), g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z);
+			aPos[0] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y - g_aStage[nCntStage].fAngle) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y - g_aStage[nCntStage].fAngle) * g_aStage[nCntStage].fLength);
+			aPos[1] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y - (D3DX_PI - g_aStage[nCntStage].fAngle)) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y - (D3DX_PI - g_aStage[nCntStage].fAngle)) * g_aStage[nCntStage].fLength);
+			aPos[2] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y - (D3DX_PI + g_aStage[nCntStage].fAngle)) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y - (D3DX_PI + g_aStage[nCntStage].fAngle)) * g_aStage[nCntStage].fLength);
+			aPos[3] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y + g_aStage[nCntStage].fAngle) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + g_aStage[nCntStage].fAngle) * g_aStage[nCntStage].fLength);
+			aPos[4] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength);
+			aPos[5] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength);
+			aPos[6] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength);
+			aPos[7] = D3DXVECTOR3(g_aStage[nCntStage].pos.x + sinf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength, g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y, g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength);
 
 			Stagevec = aPos[1] - aPos[0];//壁のベクトル
 			Posvec = pPlayer->pos - aPos[0];//壁に対するプレイヤーのベクトル
@@ -358,7 +366,7 @@ bool CollisionStage(Stage** pStage)
 			Posvec = pPlayer->pos - aPos[4];//壁に対するプレイヤーのベクトル
 			PosOldvec = pPlayer->posOld - aPos[4];//壁に対するプレイヤーの旧ベクトル
 			movevec = pPlayer->pos - pPlayer->posOld;//プレイヤーの移動ベクトル
-			if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pPlayer->pos.z < g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMax.z && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMax.z > g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMin.z)
+			if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMin.z < g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMax.z > g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength)
 			{//上
 				StageCross = (Stagevec.x * movevec.y) - (Stagevec.y * movevec.x);
 				PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
@@ -373,6 +381,10 @@ bool CollisionStage(Stage** pStage)
 					pPlayer->pos += Dovec * 1.001f;
 					pPlayer->move.y = 0.0f;
 					bRanding = true;
+					if (pPlayer->motionType == MOTIONTYPE_JUMP)
+					{
+						pPlayer->motionType = MOTIONTYPE_LANDING;
+					}
 					if (pStage != NULL)
 					{
 						*pStage = &g_aStage[nCntStage];
@@ -384,7 +396,7 @@ bool CollisionStage(Stage** pStage)
 			Posvec = pPlayer->pos - aPos[6];//壁に対するプレイヤーのベクトル
 			PosOldvec = pPlayer->posOld - aPos[6];//壁に対するプレイヤーの旧ベクトル
 			movevec = pPlayer->pos - pPlayer->posOld;//プレイヤーの移動ベクトル
-			if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pPlayer->pos.z < g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMax.z && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMax.z > g_aStage[nCntStage].pos.z + g_aStage[nCntStage].vtxMin.z)
+			if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMin.z < g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength && pPlayer->pos.z + pPlayer->aModel[1].pos.z + pPlayer->aModel[1].vtxMax.z > g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength)
 			{//下
 				StageCross = (Stagevec.x * movevec.y) - (Stagevec.y * movevec.x);
 				PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);

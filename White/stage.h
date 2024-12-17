@@ -25,6 +25,7 @@ typedef struct
 	D3DXVECTOR3 pos;
 	D3DXVECTOR3 move;
 	D3DXVECTOR3 rot;
+	float fLength;
 	float fAngle;
 	D3DXVECTOR3 scale;
 	D3DXVECTOR3 vtxMin;

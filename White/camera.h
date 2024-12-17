@@ -10,6 +10,7 @@
 
 #include"main.h"
 
+#define CAMERA_VIEW_SPEED (0.01f)//回転スピード
 #define CAMERA_ROT_SPEED (0.05f)//回転スピード
 #define CAMERA_SPEED (2.0f)//移動スピード
 #define CAMERA_INA (0.05f)//追従倍率
@@ -18,6 +19,7 @@
 #define CAMERA_DISTANCE_SPEED (50.0f)
 #define CAMERA_DISTANCE_MIN (50.0f)//ズーム制限
 #define CAMERA_DISTANCE_MAX (1000.0f)//ズーム制限
+#define CAMERA_DISTANCE_VIEW_MAX (10000.0f)
 #define CAMERA_WIDTH (90.0f)//視野の広さ
 #define CAMERA_MIN (10.0f)//視野の最小
 #define CAMERA_MAX (10000.0f)//視野の最大
@@ -34,6 +36,8 @@ typedef struct
 	D3DXMATRIX mtxProjection;
 	D3DXMATRIX mtxView;
 	float fDistance;
+	float fDistanceMin;
+	float fDistanceMax;
 }Camera;
 
 void InitCamera(void);//初期化処理
@@ -41,5 +45,7 @@ void UninitCamera(void);//終了処理
 void UpdateCamera(void);//更新処理
 void SetCamera(void);//描画処理
 Camera* GetCamera(void);
+void ViewCamera(void);
+void GameCamera(void);
 
 #endif _CAMERA_H_

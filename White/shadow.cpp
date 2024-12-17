@@ -25,7 +25,7 @@ void InitShadow(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX * SHADOW_MAX,
+		sizeof(VERTEX_3D) * VT_MAX,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -54,34 +54,29 @@ void InitShadow(void)
 
 	g_pVtxBuffShadow->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntShadow = 0; nCntShadow < SHADOW_MAX; nCntShadow++)
-	{
-		//座標設定
-		pVtx[0].pos = D3DXVECTOR3(g_aShadow[nCntShadow].pos.x - SHADOW_WIDTH * 0.5f, g_aShadow[nCntShadow].pos.y + SHADOW_HEIGHT * 0.5f, g_aShadow[nCntShadow].pos.z + SHADOW_Z * 0.5f);
-		pVtx[1].pos = D3DXVECTOR3(g_aShadow[nCntShadow].pos.x + SHADOW_WIDTH * 0.5f, g_aShadow[nCntShadow].pos.y + SHADOW_HEIGHT * 0.5f, g_aShadow[nCntShadow].pos.z + SHADOW_Z * 0.5f);
-		pVtx[2].pos = D3DXVECTOR3(g_aShadow[nCntShadow].pos.x - SHADOW_WIDTH * 0.5f, g_aShadow[nCntShadow].pos.y - SHADOW_HEIGHT * 0.5f, g_aShadow[nCntShadow].pos.z - SHADOW_Z * 0.5f);
-		pVtx[3].pos = D3DXVECTOR3(g_aShadow[nCntShadow].pos.x + SHADOW_WIDTH * 0.5f, g_aShadow[nCntShadow].pos.y - SHADOW_HEIGHT * 0.5f, g_aShadow[nCntShadow].pos.z - SHADOW_Z * 0.5f);
+	//座標設定
+	pVtx[0].pos = D3DXVECTOR3(-SHADOW_WIDTH * 0.5f, SHADOW_HEIGHT * 0.5f, SHADOW_Z * 0.5f);
+	pVtx[1].pos = D3DXVECTOR3(SHADOW_WIDTH * 0.5f, SHADOW_HEIGHT * 0.5f, SHADOW_Z * 0.5f);
+	pVtx[2].pos = D3DXVECTOR3(-SHADOW_WIDTH * 0.5f, -SHADOW_HEIGHT * 0.5f, -SHADOW_Z * 0.5f);
+	pVtx[3].pos = D3DXVECTOR3(SHADOW_WIDTH * 0.5f, -SHADOW_HEIGHT * 0.5f, -SHADOW_Z * 0.5f);
 
-		//nor
-		pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		pVtx[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		pVtx[2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		pVtx[3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	//nor
+	pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
-		//カラー
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//カラー
+	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-		//テクスチャ
-		pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-		pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-		pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-		pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
-
-		pVtx += VT_MAX;
-	}
+	//テクスチャ
+	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
+	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
+	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
+	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
 
 	g_pVtxBuffShadow->Unlock();
 }
@@ -172,7 +167,7 @@ void DrawShadow(void)
 			pDevice->DrawPrimitive
 			(
 				D3DPT_TRIANGLESTRIP,//タイプ
-				nCntShadow * VT_MAX,//始まりの番号
+				0,//始まりの番号
 				2//ポリゴンの個数
 			);
 		}

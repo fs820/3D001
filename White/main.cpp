@@ -8,26 +8,32 @@
 #include"main.h"
 #include"camera.h"
 #include"light.h"
+#include"cursor.h"
+#include"fade.h"
+#include"rank.h"
+#include"result.h"
+#include"sound.h"
+#include"title.h"
 #include"game.h"
 #include"shadow.h"
 #include"ground.h"
 #include"wall.h"
 #include"player.h"
 #include"input.h"
+#include"pause.h"
 
 #define IDI_ICON1 (WORD)"IDI_ICON1"
 
 LPDIRECT3D9 g_pD3D = NULL;//ダイレクトXオブジェクトのグローバルポインタを宣言
 LPDIRECT3DDEVICE9 g_pD3DDevice = NULL;//ダイレクトXデバイスのグローバルポインタを宣言
-MODE g_mode = MODE_GAME;
+MODE g_mode = MODE_TITLE;
 HINSTANCE g_hInstance;
 HWND g_hWnd;
-bool g_bPause = false;
+bool g_bStop = false;
 bool g_bFullScreen = false;
 LPD3DXFONT g_pFont = NULL;//フォントポインタ
 int g_nCountFPS = 0;//FPSカウンタ
 bool g_bDebug = true;
-int g_DebugCon = 0;
 
 //------------------------
 //メイン関数
@@ -140,7 +146,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hInstancePrev, _
 		}
 		else
 		{
-			if (!g_bPause)
+			if (!g_bStop)
 			{
 				dwCurrntTime = timeGetTime();//時刻を取得
 				if ((dwCurrntTime-dwFPSLastTime)>=FPS_TIME)
@@ -213,9 +219,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case VK_F2:
 			g_bDebug = !g_bDebug;
 			break;
-		case VK_F3:
-			g_DebugCon++;
-			break;
 		case VK_F4:
 			if (bFreeMause)
 			{
@@ -232,14 +235,17 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				while (ShowCursor(TRUE) < 0);
 			}
 			break;
+		case VK_F5:
+			CrCursor(!GetCursorIn()->bUse);
+			break;
 		}
 		break;
 	case WM_SETFOCUS:
-		g_bPause = false;
+		g_bStop = false;
 		ConfineCursorToWindow(hWnd);
 		break;
 	case WM_KILLFOCUS:
-		g_bPause = true;
+		g_bStop = true;
 		break;
 	}
 	//必要データを返す
@@ -361,10 +367,13 @@ HRESULT Init(HINSTANCE hInstanse, HWND hWnd, BOOL bWindow)
 	{
 		return E_FAIL;
 	}
-	InitCamera();
+	InitSound(hWnd);
 	InitLight();
+	InitCamera();
+	InitCursor();
+	InitPause();
 
-	SetMode(g_mode);
+	InitFade(g_mode);
 
 	return S_OK;
 }
@@ -374,13 +383,36 @@ HRESULT Init(HINSTANCE hInstanse, HWND hWnd, BOOL bWindow)
 //------------------------------
 void Uninit(void)
 {
+	EndSound();
+
+	UninitPause();
+	UninitCursor();
+	UninitSound();
+	UninitCamera();
+	UninitLight();
+	UninitFade();
+
+	//現在の画面の終了処理
+	switch (g_mode)
+	{
+	case MODE_TITLE:
+		UninitTitle();
+		break;
+	case MODE_GAME:
+		UninitGame();
+		break;
+	case MODE_RESULT:
+		UninitResult();
+		break;
+	case MODE_RANK:
+		UninitRank();
+		break;
+	}
+
 	UninitdJoypad();//dパッド入力
 	UninitJoypad();//パッド入力
 	UninitMouse();//マウス入力
 	UninitKeyborad();//キー入力
-
-	UninitCamera();
-	UninitLight();
 
 	//デバッグフォント破棄
 	if (g_pFont!=NULL)
@@ -414,38 +446,26 @@ void Update(void)
 	UpdateJoypad();//パッド入力
 	UpdatedJoypad();//dパッド入力
 
-	UpdateCamera();
+	UpdateFade();
+	UpdateCursor();
 	UpdateLight();
+	UpdatePause();
+	UpdateCamera();
 
 	switch (g_mode)
 	{
-	//case MODE_TITLE:
-	//	UpdateTitle();
-	//	break;
-	//case MODE_DEMO:
-	//	UpdateDemo();
-	//	break;
-	//case MODE_TUTO:
-	//	UpdateTuto();
-	//	break;
-	//case MODE_PLAYSELECT:
-	//	UpdatePlaySelect();
-	//	break;
+	case MODE_TITLE:
+		UpdateTitle();
+		break;
 	case MODE_GAME:
 		UpdateGame();
 		break;
-	//case MODE_VS:
-	//	UpdateVs();
-	//	break;
-	//case MODE_RESULT:
-	//	UpdateResult();
-	//	break;
-	//case MODE_RANK:
-	//	UpdateRank();
-	//	break;
-	//case MODE_OPTION:
-	//	UpdateOption();
-	//	break;
+	case MODE_RESULT:
+		UpdateResult();
+		break;
+	case MODE_RANK:
+		UpdateRank();
+		break;
 	}
 }
 
@@ -471,34 +491,24 @@ void Draw(void)
 		//オブジェクト描画
 		switch (g_mode)
 		{
-		//case MODE_TITLE:
-		//	DrawTitle();
-		//	break;
-		//case MODE_DEMO:
-		//	DrawDemo();
-		//	break;
-		//case MODE_TUTO:
-		//	DrawTuto();
-		//	break;
-		//case MODE_PLAYSELECT:
-		//	DrawPlaySelect();
-		//	break;
+		case MODE_TITLE:
+			DrawTitle();
+			break;
 		case MODE_GAME:
 			DrawGame();
 			break;
-		//case MODE_VS:
-		//	DrawVs();
-		//	break;
-		//case MODE_RESULT:
-		//	DrawResult();
-		//	break;
-		//case MODE_RANK:
-		//	DrawRank();
-		//	break;
-		//case MODE_OPTION:
-		//	DrawOption();
-		//	break;
+		case MODE_RESULT:
+			DrawResult();
+			break;
+		case MODE_RANK:
+			DrawRank();
+			break;
 		}
+
+		DrawPause();
+		DrawCursor();
+		DrawFade();
+
 
 #ifdef _DEBUG
 
@@ -523,33 +533,18 @@ void SetMode(MODE mode)
 	//現在の画面の終了処理
 	switch (g_mode)
 	{
-	//case MODE_TITLE:
-	//	UninitTitle();
-	//	break;
-	//case MODE_DEMO:
-	//	UninitDemo();
-	//	break;
-	//case MODE_TUTO:
-	//	UninitTuto();
-	//	break;
-	//case MODE_PLAYSELECT:
-	//	UninitPlaySelect();
-	//	break;
+	case MODE_TITLE:
+		UninitTitle();
+		break;
 	case MODE_GAME:
 		UninitGame();
 		break;
-	//case MODE_VS:
-	//	UninitVs();
-	//	break;
-	//case MODE_RESULT:
-	//	UninitResult();
-	//	break;
-	//case MODE_RANK:
-	//	UninitRank();
-	//	break;
-	//case MODE_OPTION:
-	//	UninitOption();
-	//	break;
+	case MODE_RESULT:
+		UninitResult();
+		break;
+	case MODE_RANK:
+		UninitRank();
+		break;
 	}
 
 	g_mode = mode;
@@ -557,33 +552,18 @@ void SetMode(MODE mode)
 	//新しい画面の初期化処理
 	switch (mode)
 	{
-	//case MODE_TITLE:
-	//	InitTitle();
-	//	break;
-	//case MODE_DEMO:
-	//	InitDemo();
-	//	break;
-	//case MODE_TUTO:
-	//	InitTuto();
-	//	break;
-	//case MODE_PLAYSELECT:
-	//	InitPlaySelect();
-	//	break;
+	case MODE_TITLE:
+		InitTitle();
+		break;
 	case MODE_GAME:
 		InitGame();
 		break;
-	//case MODE_VS:
-	//	InitVs();
-	//	break;
-	//case MODE_RESULT:
-	//	InitResult();
-	//	break;
-	//case MODE_RANK:
-	//	InitRank();
-	//	break;
-	//case MODE_OPTION:
-	//	InitOption();
-	//	break;
+	case MODE_RESULT:
+		InitResult();
+		break;
+	case MODE_RANK:
+		InitRank();
+		break;
 	}
 }
 
@@ -767,6 +747,20 @@ void DrawDebug(void)
 	rect.top += FONT_SIZE;
 
 	//文字列の代入
+	snprintf(&aStr[0], sizeof(aStr), "プレイヤー体力:%d\n", pPlayer->nLife);
+
+	//テキストの描画
+	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));
+	rect.top += FONT_SIZE;
+
+	//文字列の代入
+	snprintf(&aStr[0], sizeof(aStr), "プレイヤー状態:%d\n", pPlayer->state);
+
+	//テキストの描画
+	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));
+	rect.top += FONT_SIZE;
+
+	//文字列の代入
 	snprintf(&aStr[0], sizeof(aStr), "プレイヤー最大頂点:%f %f %f\n", pPlayer->aModel[0].vtxMax.x, pPlayer->aModel[0].vtxMax.y, pPlayer->aModel[0].vtxMax.z);
 
 	//テキストの描画
@@ -824,6 +818,13 @@ void DrawDebug(void)
 
 	//文字列の代入
 	snprintf(&aStr[0], sizeof(aStr), "キー番号:%d\n", pPlayer->nKey);
+
+	//テキストの描画
+	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));
+	rect.top += FONT_SIZE;
+
+	//文字列の代入
+	snprintf(&aStr[0], sizeof(aStr), "モーションカウント:%d\n", pPlayer->nCounterMotion);
 
 	//テキストの描画
 	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));

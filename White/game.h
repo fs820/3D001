@@ -13,6 +13,9 @@
 #define INTER (60)//終了猶予
 #define GAME_WALL (3000.0f)//大人の壁
 #define GRAVITY (-1.2f)//重力
+#define TEXTURE_NUMBER "data\\TEXTURE\\number000.png"
+#define TIME_LIMIT (60)
+#define FRAME (60)
 
 //ゲーム状態の列挙型定義
 typedef enum

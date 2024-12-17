@@ -26,9 +26,9 @@
 #define MAX_MODEL (16)
 #define NUM_MODEL (11)
 #define MAX_KEY (16)
-#define NUM_KEY (2)
+#define NUM_KEY (5)
 #define MAX_MOTION (16)
-#define NUM_MOTION (1)
+#define NUM_MOTION (5)
 #define SPEED (2.0f)
 #define SPEED_DEF (0.0f)
 #define JUMP (20.0f)
@@ -39,6 +39,18 @@
 #define SCALE_MIN (0.5f)
 #define SCALE_MAX (10.0f)
 #define START_Z (-1500.0f)
+#define PLAYER_LIFE (300)
+#define BLEND_FRAME (10.0f)
+
+//プレイヤー状態の列挙型定義
+typedef enum
+{
+	PLAYERSTATE_APPEAR = 0,//復活状態
+	PLAYERSTATE_NORMAL,//通常
+	PLAYERSTATE_DAMAGE,//ダメージ
+	PLAYERSTATE_DIE,//死
+	PLAYERSTATE_MAX//数
+}PLAYERSTATE;
 
 //モーションの種類
 typedef enum
@@ -86,6 +98,8 @@ typedef struct
 	D3DXVECTOR3 Destrot;
 	D3DXVECTOR3 scale;
 	bool bJump;
+	int nLife;
+	PLAYERSTATE state;
 	D3DXMATRIX mtxWorld;
 	int nIdxShadow;
 	Model aModel[MAX_MODEL];
@@ -98,6 +112,7 @@ typedef struct
 	int nKey;
 	int nCounterMotion;
 	Stage* pStage;
+	bool bUse;
 }Player;
 
 void InitPlayer(void);//ポリゴンの初期化処理

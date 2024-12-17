@@ -26,7 +26,7 @@ void InitSnowBall(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX_SB * SNOWBALL_MAX,
+		sizeof(VERTEX_3D) * VT_MAX_SB,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -53,7 +53,7 @@ void InitSnowBall(void)
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
-		sizeof(WORD) * INDEX_SB_NUM * SNOWBALL_MAX,
+		sizeof(WORD) * INDEX_SB_NUM,
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
@@ -61,7 +61,7 @@ void InitSnowBall(void)
 		NULL
 	);
 
-	int nCntSnowBall, nCntSnowBall2, nCntSnowBall3;
+	int nCntSnowBall, nCntSnowBall2;
 	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
 	{
 		g_aSnowBall[nCntSnowBall].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -73,57 +73,54 @@ void InitSnowBall(void)
 
 	g_pVtxBuffSnowBall->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
-	{//球の数
+	//極頂点
+	pVtx[0].pos = D3DXVECTOR3(0.0f, SNOWBALL_RADIUS, 0.0f);
 
-		//極頂点
-		pVtx[0].pos = D3DXVECTOR3(g_aSnowBall[nCntSnowBall].pos.x, g_aSnowBall[nCntSnowBall].pos.y + SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.z);
+	D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, SNOWBALL_RADIUS, 0.0f), dpos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	npos = npos - dpos;
+	D3DXVec3Normalize(&npos, &npos);
+	pVtx[0].nor = npos;
 
-		D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(g_aSnowBall[nCntSnowBall].pos.x, g_aSnowBall[nCntSnowBall].pos.y + SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.z);
-		D3DXVec3Normalize(&npos, &dpos);
-		pVtx[0].nor = npos;
+	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
 
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
+	pVtx[0].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM)), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM));
 
-		pVtx[0].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM)), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM));
+	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_VNUM - 1; nCntSnowBall++)
+	{//1枚分のZ軸のループ
+		for (nCntSnowBall2 = 0; nCntSnowBall2 < SNOWBALL_HNUM + 1; nCntSnowBall2++)
+		{//1枚分のX軸のループ
 
-		for (nCntSnowBall2 = 0; nCntSnowBall2 < SNOWBALL_VNUM - 1; nCntSnowBall2++)
-		{//1枚分のZ軸のループ
-			for (nCntSnowBall3 = 0; nCntSnowBall3 < SNOWBALL_HNUM + 1; nCntSnowBall3++)
-			{//1枚分のX軸のループ
+			//円形の角度
+			float fangleH = (360.0f / SNOWBALL_HNUM) * nCntSnowBall2 * (D3DX_PI / 180.0f), fangleV = (SNOWBALL_ANG / SNOWBALL_VNUM) * (nCntSnowBall + 1) * (D3DX_PI / 180.0f);
 
-				//円形の角度
-				float fangleH = (360.0f / SNOWBALL_HNUM) * nCntSnowBall3 * (D3DX_PI / 180.0f), fangleV = (SNOWBALL_ANG / SNOWBALL_VNUM) * (nCntSnowBall2 + 1) * (D3DX_PI / 180.0f);
+			//座標設定
+			pVtx[nCntSnowBall * (SNOWBALL_HNUM + 1) + nCntSnowBall2 + 1].pos = D3DXVECTOR3(sinf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS, cosf(fangleV) * SNOWBALL_RADIUS, cosf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS);
 
-				//座標設定
-				pVtx[nCntSnowBall2 * (SNOWBALL_HNUM + 1) + nCntSnowBall3 + 1].pos = D3DXVECTOR3(g_aSnowBall[nCntSnowBall].pos.x + sinf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.y + cosf(fangleV) * SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.z + cosf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS);
+			//nor
+			D3DXVECTOR3 npos = D3DXVECTOR3(sinf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS, cosf(fangleV) * SNOWBALL_RADIUS, cosf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS), dpos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			npos = npos - dpos;
+			D3DXVec3Normalize(&npos, &npos);
+			pVtx[nCntSnowBall * (SNOWBALL_HNUM + 1) + nCntSnowBall2 + 1].nor = npos;
 
-				//nor
-				D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(g_aSnowBall[nCntSnowBall].pos.x + sinf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.y + cosf(fangleV) * SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.z + cosf(fangleH) * sinf(fangleV) * SNOWBALL_RADIUS);
-				D3DXVec3Normalize(&npos, &dpos);
-				pVtx[nCntSnowBall2 * (SNOWBALL_HNUM + 1) + nCntSnowBall3 + 1].nor = npos;
+			//カラー
+			pVtx[nCntSnowBall * (SNOWBALL_HNUM + 1) + nCntSnowBall2 + 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-				//カラー
-				pVtx[nCntSnowBall2 * (SNOWBALL_HNUM + 1) + nCntSnowBall3 + 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-
-				//テクスチャ
-				pVtx[nCntSnowBall2 * (SNOWBALL_HNUM + 1) + nCntSnowBall3 + 1].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM) * nCntSnowBall3), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM) * nCntSnowBall2);
-			}
+			//テクスチャ
+			pVtx[nCntSnowBall * (SNOWBALL_HNUM + 1) + nCntSnowBall2 + 1].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM) * nCntSnowBall2), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM) * nCntSnowBall);
 		}
-
-		//極頂点
-		pVtx[VT_MAX_SB - 1].pos = D3DXVECTOR3(g_aSnowBall[nCntSnowBall].pos.x, g_aSnowBall[nCntSnowBall].pos.y - SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.z);
-
-		npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(g_aSnowBall[nCntSnowBall].pos.x, g_aSnowBall[nCntSnowBall].pos.y - SNOWBALL_RADIUS, g_aSnowBall[nCntSnowBall].pos.z);
-		D3DXVec3Normalize(&npos, &dpos);
-		pVtx[VT_MAX_SB - 1].nor = npos;
-
-		pVtx[VT_MAX_SB - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
-
-		pVtx[VT_MAX_SB - 1].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM)), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM));
-
-		pVtx += VT_MAX_SB;
 	}
+
+	//極頂点
+	pVtx[VT_MAX_SB - 1].pos = D3DXVECTOR3(0.0f, -SNOWBALL_RADIUS, 0.0f);
+
+	npos = D3DXVECTOR3(0.0f, -SNOWBALL_RADIUS, 0.0f), dpos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	npos = npos - dpos;
+	D3DXVec3Normalize(&npos, &npos);
+	pVtx[VT_MAX_SB - 1].nor = npos;
+
+	pVtx[VT_MAX_SB - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
+
+	pVtx[VT_MAX_SB - 1].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM)), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM));
 
 	g_pVtxBuffSnowBall->Unlock();
 
@@ -131,43 +128,38 @@ void InitSnowBall(void)
 	int nIdx[INDEX_SB_NUM];
 	g_pIdxBuffSnowBall->Lock(0, 0, (void**)&pIdx, 0);
 
-	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
-	{//球の数
-		pIdx[0] = 0;
-		nIdx[0] = 0;
-		for (nCntSnowBall2 = 1; nCntSnowBall2 < SNOWBALL_HNUM + 2; nCntSnowBall2++)
-		{//FAN部分
-			pIdx[nCntSnowBall2] = nCntSnowBall2;
-			nIdx[nCntSnowBall2] = nCntSnowBall2;
-		}
-		for (nCntSnowBall2 = SNOWBALL_HNUM + 2; nCntSnowBall2 < INDEX_SB_NUM - (SNOWBALL_VNUM - 2) * 2 - SNOWBALL_HNUM; nCntSnowBall2++)
-		{//SBRIP部分
-			if ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) % (((SNOWBALL_HNUM + 1) * 2)) == 0 && (nCntSnowBall2 - (SNOWBALL_HNUM + 2)) != 0)
-			{//縮退ポリゴン
-				//インデックス指定
-				pIdx[nCntSnowBall2 - 2 + (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) - 1) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) - 1) / 2);
-				nIdx[nCntSnowBall2 - 2 + (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) - 1) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) - 1) / 2);
-
-				//インデックス指定
-				pIdx[nCntSnowBall2 - 1 + (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / 2);
-				nIdx[nCntSnowBall2 - 1 + (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / 2);
-			}
+	pIdx[0] = 0;
+	nIdx[0] = 0;
+	for (nCntSnowBall = 1; nCntSnowBall < SNOWBALL_HNUM + 2; nCntSnowBall++)
+	{//FAN部分
+		pIdx[nCntSnowBall] = nCntSnowBall;
+		nIdx[nCntSnowBall] = nCntSnowBall;
+	}
+	for (nCntSnowBall = SNOWBALL_HNUM + 2; nCntSnowBall < INDEX_SB_NUM - (SNOWBALL_VNUM - 2) * 2 - SNOWBALL_HNUM; nCntSnowBall++)
+	{//SBRIP部分
+		if ((nCntSnowBall - (SNOWBALL_HNUM + 2)) % (((SNOWBALL_HNUM + 1) * 2)) == 0 && (nCntSnowBall - (SNOWBALL_HNUM + 2)) != 0)
+		{//縮退ポリゴン
+			//インデックス指定
+			pIdx[nCntSnowBall - 2 + (((nCntSnowBall - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * (((nCntSnowBall - (SNOWBALL_HNUM + 2)) - 1) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - (((nCntSnowBall - (SNOWBALL_HNUM + 2)) - 1) / 2);
+			nIdx[nCntSnowBall - 2 + (((nCntSnowBall - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * (((nCntSnowBall - (SNOWBALL_HNUM + 2)) - 1) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - (((nCntSnowBall - (SNOWBALL_HNUM + 2)) - 1) / 2);
 
 			//インデックス指定
-			pIdx[nCntSnowBall2 + (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / 2);
-			nIdx[nCntSnowBall2 + (((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall2 - (SNOWBALL_HNUM + 2)) / 2);
+			pIdx[nCntSnowBall - 1 + (((nCntSnowBall - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall - (SNOWBALL_HNUM + 2)) / 2);
+			nIdx[nCntSnowBall - 1 + (((nCntSnowBall - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall - (SNOWBALL_HNUM + 2)) / 2);
 		}
 
-		for (nCntSnowBall2 = 1; nCntSnowBall2 < SNOWBALL_HNUM + 2; nCntSnowBall2++)
-		{//FAN部分
-			pIdx[INDEX_SB_NUM - nCntSnowBall2] = VT_MAX_SB - (SNOWBALL_HNUM + 2) + (nCntSnowBall2 - 1);
-			nIdx[INDEX_SB_NUM - nCntSnowBall2] = VT_MAX_SB - (SNOWBALL_HNUM + 2) + (nCntSnowBall2 - 1);
-		}
-		pIdx[INDEX_SB_NUM - (SNOWBALL_HNUM + 2)] = VT_MAX_SB - 1;
-		nIdx[INDEX_SB_NUM - (SNOWBALL_HNUM + 2)] = VT_MAX_SB - 1;
-
-		pIdx += INDEX_SB_NUM;
+		//インデックス指定
+		pIdx[nCntSnowBall + (((nCntSnowBall - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall - (SNOWBALL_HNUM + 2)) / 2);
+		nIdx[nCntSnowBall + (((nCntSnowBall - (SNOWBALL_HNUM + 2)) / ((SNOWBALL_HNUM + 1) * 2)) * 2)] = (SNOWBALL_HNUM + 1) - (SNOWBALL_HNUM + 1) * ((nCntSnowBall - (SNOWBALL_HNUM + 2)) % 2) + (VT_MAX_SB - (SNOWBALL_HNUM + 3)) - ((nCntSnowBall - (SNOWBALL_HNUM + 2)) / 2);
 	}
+
+	for (nCntSnowBall = 1; nCntSnowBall < SNOWBALL_HNUM + 2; nCntSnowBall++)
+	{//FAN部分
+		pIdx[INDEX_SB_NUM - nCntSnowBall] = VT_MAX_SB - (SNOWBALL_HNUM + 2) + (nCntSnowBall - 1);
+		nIdx[INDEX_SB_NUM - nCntSnowBall] = VT_MAX_SB - (SNOWBALL_HNUM + 2) + (nCntSnowBall - 1);
+	}
+	pIdx[INDEX_SB_NUM - (SNOWBALL_HNUM + 2)] = VT_MAX_SB - 1;
+	nIdx[INDEX_SB_NUM - (SNOWBALL_HNUM + 2)] = VT_MAX_SB - 1;
 
 	g_pIdxBuffSnowBall->Unlock();
 }
@@ -209,7 +201,7 @@ void UpdateSnowBall(void)
 	int nCntSnowBall;
 	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
 	{
-		
+		g_aSnowBall[nCntSnowBall].rot.z += 0.1f;
 	}
 }
 
@@ -266,7 +258,7 @@ void DrawSnowBall(void)
 				0,
 				0,
 				SNOWBALL_HNUM + 2,//頂点数
-				nCntSnowBall * INDEX_SB_NUM,
+				0,
 				SNOWBALL_HNUM//ポリゴンの個数
 			);
 
@@ -279,7 +271,7 @@ void DrawSnowBall(void)
 				0,
 				0,
 				VT_MAX_SB - (SNOWBALL_HNUM + 2) * 2,//頂点数
-				nCntSnowBall * INDEX_SB_NUM + SNOWBALL_HNUM + 2,
+				SNOWBALL_HNUM + 2,
 				POLYGON_SB_NUM - SNOWBALL_HNUM * 2//ポリゴンの個数
 			);
 
@@ -292,7 +284,7 @@ void DrawSnowBall(void)
 				0,
 				0,
 				SNOWBALL_HNUM + 2,//頂点数
-				nCntSnowBall * INDEX_SB_NUM + INDEX_SB_NUM - (SNOWBALL_HNUM + 2),
+				INDEX_SB_NUM - (SNOWBALL_HNUM + 2),
 				SNOWBALL_HNUM//ポリゴンの個数
 			);
 		}

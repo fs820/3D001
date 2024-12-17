@@ -28,7 +28,7 @@ void InitSphere(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX_SP * SPHERE_MAX,
+		sizeof(VERTEX_3D) * VT_MAX_SP,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -55,7 +55,7 @@ void InitSphere(void)
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
-		sizeof(WORD) * INDEX_SP_NUM * SPHERE_MAX,
+		sizeof(WORD) * INDEX_SP_NUM,
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
@@ -63,7 +63,7 @@ void InitSphere(void)
 		NULL
 	);
 
-	int nCntSphere, nCntSphere2, nCntSphere3;
+	int nCntSphere, nCntSphere2;
 	for (nCntSphere = 0; nCntSphere < SPHERE_MAX; nCntSphere++)
 	{
 		g_aSphere[nCntSphere].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -74,93 +74,84 @@ void InitSphere(void)
 
 	g_pVtxBuffSphere->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntSphere = 0; nCntSphere < SPHERE_MAX; nCntSphere++)
-	{//球の数
+	//極頂点
+	pVtx[0].pos = D3DXVECTOR3(0.0f, SPHERE_RADIUS, 0.0f);
 
-		//極頂点
-		pVtx[0].pos = D3DXVECTOR3(g_aSphere[nCntSphere].pos.x, g_aSphere[nCntSphere].pos.y + SPHERE_RADIUS, g_aSphere[nCntSphere].pos.z);
+	D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(0.0f, SPHERE_RADIUS, 0.0f);
+	npos = npos - dpos;
+	D3DXVec3Normalize(&npos, &npos);
+	pVtx[0].nor = npos;
 
-		D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(g_aSphere[nCntSphere].pos.x, g_aSphere[nCntSphere].pos.y + SPHERE_RADIUS, g_aSphere[nCntSphere].pos.z);
-		D3DXVec3Normalize(&npos, &dpos);
-		pVtx[0].nor = -npos;
+	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
 
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
+	pVtx[0].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
 
-		pVtx[0].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
+	for (nCntSphere = 0; nCntSphere < SPHERE_VNUM/* - 1*/; nCntSphere++)
+	{//1枚分のZ軸のループ
+		for (nCntSphere2 = 0; nCntSphere2 < SPHERE_HNUM + 1; nCntSphere2++)
+		{//1枚分のX軸のループ
 
-		for (nCntSphere2 = 0; nCntSphere2 < SPHERE_VNUM/* - 1*/; nCntSphere2++)
-		{//1枚分のZ軸のループ
-			for (nCntSphere3 = 0; nCntSphere3 < SPHERE_HNUM + 1; nCntSphere3++)
-			{//1枚分のX軸のループ
+			//円形の角度
+			float fangleH = (360.0f / SPHERE_HNUM) * nCntSphere2 * (D3DX_PI / 180.0f), fangleV = (SPHERE_ANG / SPHERE_VNUM) * (nCntSphere + 1) * (D3DX_PI / 180.0f);
 
-				//円形の角度
-				float fangleH = (360.0f / SPHERE_HNUM) * nCntSphere3 * (D3DX_PI / 180.0f), fangleV = (SPHERE_ANG / SPHERE_VNUM) * (nCntSphere2 + 1) * (D3DX_PI / 180.0f);
+			//座標設定
+			pVtx[nCntSphere * (SPHERE_HNUM + 1) + nCntSphere2 + 1].pos = D3DXVECTOR3(sinf(fangleH) * sinf(fangleV) * SPHERE_RADIUS, cosf(fangleV) * SPHERE_RADIUS, cosf(fangleH) * sinf(fangleV) * SPHERE_RADIUS);
 
-				//座標設定
-				pVtx[nCntSphere2 * (SPHERE_HNUM + 1) + nCntSphere3 + 1].pos = D3DXVECTOR3(g_aSphere[nCntSphere].pos.x + sinf(fangleH) * sinf(fangleV) * SPHERE_RADIUS, g_aSphere[nCntSphere].pos.y + cosf(fangleV) * SPHERE_RADIUS, g_aSphere[nCntSphere].pos.z + cosf(fangleH) * sinf(fangleV) * SPHERE_RADIUS);
+			//nor
+			D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(sinf(fangleH) * sinf(fangleV) * SPHERE_RADIUS, cosf(fangleV) * SPHERE_RADIUS, cosf(fangleH) * sinf(fangleV) * SPHERE_RADIUS);
+			npos = npos - dpos;
+			D3DXVec3Normalize(&npos, &npos);
+			pVtx[nCntSphere * (SPHERE_HNUM + 1) + nCntSphere2 + 1].nor = npos;
 
-				//nor
-				D3DXVECTOR3 npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(g_aSphere[nCntSphere].pos.x + sinf(fangleH) * sinf(fangleV) * SPHERE_RADIUS, g_aSphere[nCntSphere].pos.y + cosf(fangleV) * SPHERE_RADIUS, g_aSphere[nCntSphere].pos.z + cosf(fangleH) * sinf(fangleV) * SPHERE_RADIUS);
-				D3DXVec3Normalize(&npos, &dpos);
-				pVtx[nCntSphere2 * (SPHERE_HNUM + 1) + nCntSphere3 + 1].nor = -npos;
+			//カラー
+			pVtx[nCntSphere * (SPHERE_HNUM + 1) + nCntSphere2 + 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
 
-				//カラー
-				pVtx[nCntSphere2 * (SPHERE_HNUM + 1) + nCntSphere3 + 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
-
-				//テクスチャ
-				pVtx[nCntSphere2 * (SPHERE_HNUM + 1) + nCntSphere3 + 1].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM) * nCntSphere3), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM) * nCntSphere2);
-			}
+			//テクスチャ
+			pVtx[nCntSphere * (SPHERE_HNUM + 1) + nCntSphere2 + 1].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM) * nCntSphere2), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM) * nCntSphere);
 		}
-
-		////極頂点
-		//pVtx[VT_MAX_SP - 1].pos = D3DXVECTOR3(g_aSphere[nCntSphere].pos.x, g_aSphere[nCntSphere].pos.y - SPHERE_RADIUS, g_aSphere[nCntSphere].pos.z);
-
-		//npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(g_aSphere[nCntSphere].pos.x, g_aSphere[nCntSphere].pos.y - SPHERE_RADIUS, g_aSphere[nCntSphere].pos.z);
-		//D3DXVec3Normalize(&npos, &dpos);
-		//pVtx[VT_MAX_SP - 1].nor = npos;
-
-		//pVtx[VT_MAX_SP - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
-
-		//pVtx[VT_MAX_SP - 1].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
-
-		pVtx += VT_MAX_SP;
 	}
+
+	////極頂点
+	//pVtx[VT_MAX_SP - 1].pos = D3DXVECTOR3(0.0f, -SPHERE_RADIUS, 0.0f);
+
+	//npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(0.0f, -SPHERE_RADIUS, 0.0f);
+	//D3DXVec3Normalize(&npos, &dpos);
+	//pVtx[VT_MAX_SP - 1].nor = npos;
+
+	//pVtx[VT_MAX_SP - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
+
+	//pVtx[VT_MAX_SP - 1].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
 
 	g_pVtxBuffSphere->Unlock();
 
 	WORD* pIdx;
 	g_pIdxBuffSphere->Lock(0, 0, (void**)&pIdx, 0);
 
-	for (nCntSphere = 0; nCntSphere < SPHERE_MAX; nCntSphere++)
-	{//球の数
-		pIdx[0] = 0;
-		for (nCntSphere2 = 1; nCntSphere2 < SPHERE_HNUM + 2; nCntSphere2++)
-		{//FAN部分
-			pIdx[nCntSphere2] = SPHERE_HNUM + 2 - nCntSphere2;
-		}
-		for (nCntSphere2 = SPHERE_HNUM + 2; nCntSphere2 < INDEX_SP_NUM - (SPHERE_VNUM - 2) * 2/* - SPHERE_HNUM*/; nCntSphere2++)
-		{//STRIP部分
-			if ((nCntSphere2 - (SPHERE_HNUM + 2)) % (((SPHERE_HNUM + 1) * 2)) == 0 && (nCntSphere2 - (SPHERE_HNUM + 2)) != 0)
-			{//縮退ポリゴン
-				//インデックス指定
-				pIdx[nCntSphere2 - 2 + (((nCntSphere2 - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * (((nCntSphere2 - (SPHERE_HNUM + 2)) - 1) % 2) + (((nCntSphere2 - (SPHERE_HNUM + 2)) - 1) / 2) + 1;
-
-				//インデックス指定
-				pIdx[nCntSphere2 - 1 + (((nCntSphere2 - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * ((nCntSphere2 - (SPHERE_HNUM + 2)) % 2) + ((nCntSphere2 - (SPHERE_HNUM + 2)) / 2) + 1;
-			}
+	pIdx[0] = 0;
+	for (nCntSphere = 1; nCntSphere < SPHERE_HNUM + 2; nCntSphere++)
+	{//FAN部分
+		pIdx[nCntSphere] = SPHERE_HNUM + 2 - nCntSphere;
+	}
+	for (nCntSphere = SPHERE_HNUM + 2; nCntSphere < INDEX_SP_NUM - (SPHERE_VNUM - 2) * 2/* - SPHERE_HNUM*/; nCntSphere++)
+	{//STRIP部分
+		if ((nCntSphere - (SPHERE_HNUM + 2)) % (((SPHERE_HNUM + 1) * 2)) == 0 && (nCntSphere - (SPHERE_HNUM + 2)) != 0)
+		{//縮退ポリゴン
+			//インデックス指定
+			pIdx[nCntSphere - 2 + (((nCntSphere - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * (((nCntSphere - (SPHERE_HNUM + 2)) - 1) % 2) + (((nCntSphere - (SPHERE_HNUM + 2)) - 1) / 2) + 1;
 
 			//インデックス指定
-			pIdx[nCntSphere2 + (((nCntSphere2 - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * ((nCntSphere2 - (SPHERE_HNUM + 2)) % 2) + ((nCntSphere2 - (SPHERE_HNUM + 2)) / 2) + 1;
+			pIdx[nCntSphere - 1 + (((nCntSphere - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * ((nCntSphere - (SPHERE_HNUM + 2)) % 2) + ((nCntSphere - (SPHERE_HNUM + 2)) / 2) + 1;
 		}
 
-		//for (nCntSphere2 = 1; nCntSphere2 < SPHERE_HNUM + 2; nCntSphere2++)
-		//{//FAN部分
-		//	pIdx[INDEX_SP_NUM - nCntSphere2] = VT_MAX_SP - (nCntSphere2 + 1);
-		//}
-		//pIdx[INDEX_SP_NUM - (SPHERE_HNUM + 2)] = VT_MAX_SP - 1;
-
-		pIdx += INDEX_SP_NUM;
+		//インデックス指定
+		pIdx[nCntSphere + (((nCntSphere - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * ((nCntSphere - (SPHERE_HNUM + 2)) % 2) + ((nCntSphere - (SPHERE_HNUM + 2)) / 2) + 1;
 	}
+
+	//for (nCntSphere2 = 1; nCntSphere2 < SPHERE_HNUM + 2; nCntSphere2++)
+	//{//FAN部分
+	//	pIdx[INDEX_SP_NUM - nCntSphere2] = VT_MAX_SP - (nCntSphere2 + 1);
+	//}
+	//pIdx[INDEX_SP_NUM - (SPHERE_HNUM + 2)] = VT_MAX_SP - 1;
 
 	g_pIdxBuffSphere->Unlock();
 }
@@ -199,7 +190,25 @@ void UninitSphere(void)
 //-------------------
 void UpdateSphere(void)
 {
+	VERTEX_3D* pVtx;//頂点情報ポインタ
+	static float nCntTex;
+	int nCntSphere, nCntSphere2;
 
+	g_pVtxBuffSphere->Lock(0, 0, (void**)&pVtx, 0);
+
+	pVtx[0].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)) + nCntTex, (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
+
+	for (nCntSphere = 0; nCntSphere < SPHERE_VNUM/* - 1*/; nCntSphere++)
+	{//1枚分のZ軸のループ
+		for (nCntSphere2 = 0; nCntSphere2 < SPHERE_HNUM + 1; nCntSphere2++)
+		{//1枚分のX軸のループ
+			//テクスチャ
+			pVtx[nCntSphere * (SPHERE_HNUM + 1) + nCntSphere2 + 1].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM) * nCntSphere2) + nCntTex, (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM) * nCntSphere);
+		}
+	}
+
+	g_pVtxBuffSphere->Unlock();
+	nCntTex += 0.0001f;
 }
 
 //-------------------
@@ -251,7 +260,7 @@ void DrawSphere(void)
 				0,
 				0,
 				SPHERE_HNUM + 2,//頂点数
-				nCntSphere * INDEX_SP_NUM,
+				0,
 				SPHERE_HNUM//ポリゴンの個数
 			);
 
@@ -264,7 +273,7 @@ void DrawSphere(void)
 				0,
 				0,
 				VT_MAX_SP - (SPHERE_HNUM + 2)/* * 2*/,//頂点数
-				nCntSphere * INDEX_SP_NUM + SPHERE_HNUM + 2,
+				SPHERE_HNUM + 2,
 				POLYGON_SP_NUM - SPHERE_HNUM/* * 2*///ポリゴンの個数
 			);
 

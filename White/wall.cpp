@@ -27,7 +27,7 @@ void InitWall(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX * WALL_MAX,
+		sizeof(VERTEX_3D) * VT_MAX * 2,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -56,13 +56,13 @@ void InitWall(void)
 
 	g_pVtxBuffWall->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntWall = 0; nCntWall < WALL_MAX; nCntWall++)
+	for (nCntWall = 0; nCntWall < 2; nCntWall++)
 	{
 		//座標設定
-		pVtx[0].pos = D3DXVECTOR3(g_aWall[nCntWall].pos.x - WALL_WIDTH * 0.5f, g_aWall[nCntWall].pos.y + WALL_HEIGHT, g_aWall[nCntWall].pos.z + WALL_Z * 0.5f);
-		pVtx[1].pos = D3DXVECTOR3(g_aWall[nCntWall].pos.x + WALL_WIDTH * 0.5f, g_aWall[nCntWall].pos.y + WALL_HEIGHT, g_aWall[nCntWall].pos.z + WALL_Z * 0.5f);
-		pVtx[2].pos = D3DXVECTOR3(g_aWall[nCntWall].pos.x - WALL_WIDTH * 0.5f, g_aWall[nCntWall].pos.y, g_aWall[nCntWall].pos.z - WALL_Z * 0.5f);
-		pVtx[3].pos = D3DXVECTOR3(g_aWall[nCntWall].pos.x + WALL_WIDTH * 0.5f, g_aWall[nCntWall].pos.y, g_aWall[nCntWall].pos.z - WALL_Z * 0.5f);
+		pVtx[0].pos = D3DXVECTOR3(-WALL_WIDTH * 0.5f, WALL_HEIGHT, WALL_Z * 0.5f);
+		pVtx[1].pos = D3DXVECTOR3(WALL_WIDTH * 0.5f, WALL_HEIGHT, WALL_Z * 0.5f);
+		pVtx[2].pos = D3DXVECTOR3(-WALL_WIDTH * 0.5f, 0.0f, -WALL_Z * 0.5f);
+		pVtx[3].pos = D3DXVECTOR3(WALL_WIDTH * 0.5f, 0.0f, -WALL_Z * 0.5f);
 
 		//nor
 		pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
@@ -71,10 +71,10 @@ void InitWall(void)
 		pVtx[3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
 		//カラー
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f - nCntWall * (1.0f - WALL_ALPHA));
+		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f - nCntWall * (1.0f - WALL_ALPHA));
+		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f - nCntWall * (1.0f - WALL_ALPHA));
+		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f - nCntWall * (1.0f - WALL_ALPHA));
 
 		//テクスチャ
 		pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
@@ -159,7 +159,7 @@ void DrawWall(void)
 			pDevice->DrawPrimitive
 			(
 				D3DPT_TRIANGLESTRIP,//タイプ
-				nCntWall * VT_MAX,//始まりの番号
+				0,//始まりの番号
 				2//ポリゴンの個数
 			);
 		}
@@ -209,7 +209,7 @@ void DrawAlphaWall(void)
 			pDevice->DrawPrimitive
 			(
 				D3DPT_TRIANGLESTRIP,//タイプ
-				nCntWall * VT_MAX,//始まりの番号
+				VT_MAX,//始まりの番号
 				2//ポリゴンの個数
 			);
 		}
@@ -221,7 +221,6 @@ void DrawAlphaWall(void)
 //----------
 void SetWall(D3DXVECTOR3 pos, D3DXVECTOR3 rot)
 {
-	VERTEX_3D* pVtx;//頂点情報ポインタ
 	int nCntWall;
 	for (nCntWall = 0; nCntWall < WALL_MAX; nCntWall++)
 	{
@@ -251,16 +250,6 @@ void SetWall(D3DXVECTOR3 pos, D3DXVECTOR3 rot)
 			{
 				g_aWall[nCntWall].rot.y += D3DX_PI * 2.0f;
 			}
-			g_pVtxBuffWall->Lock(0, 0, (void**)&pVtx, 0);
-
-			pVtx += nCntWall * VT_MAX;
-			//カラー
-			pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, WALL_ALPHA);
-			pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, WALL_ALPHA);
-			pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, WALL_ALPHA);
-			pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, WALL_ALPHA);
-
-			g_pVtxBuffWall->Unlock();
 			g_aWall[nCntWall].bAlpha = true;
 			g_aWall[nCntWall].bUse = true;
 			break;

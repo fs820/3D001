@@ -31,6 +31,8 @@ typedef struct
 	D3DXVECTOR3 pos;
 	D3DXVECTOR3 rot;
 	D3DXVECTOR3 scale;
+	float fLength;
+	float fAngle;
 	D3DXMATRIX mtxWorld;
 	bool bUse;
 }Line;

@@ -26,7 +26,7 @@ void InitGround(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX * GROUND_MAX,
+		sizeof(VERTEX_3D) * VT_MAX,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -55,34 +55,29 @@ void InitGround(void)
 
 	g_pVtxBuffGround->Lock(0,0,(void**)&pVtx,0);
 
-	for (nCntGround = 0; nCntGround < GROUND_MAX; nCntGround++)
-	{
-		//座標設定
-		pVtx[0].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x - GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y + GROUND_HEIGHT, g_aGround[nCntGround].pos.z + GROUND_Z * 0.5f);
-		pVtx[1].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x + GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y + GROUND_HEIGHT, g_aGround[nCntGround].pos.z + GROUND_Z * 0.5f);
-		pVtx[2].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x - GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y, g_aGround[nCntGround].pos.z - GROUND_Z * 0.5f);
-		pVtx[3].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x + GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y, g_aGround[nCntGround].pos.z - GROUND_Z * 0.5f);
+	//座標設定
+	pVtx[0].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x - GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y + GROUND_HEIGHT, g_aGround[nCntGround].pos.z + GROUND_Z * 0.5f);
+	pVtx[1].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x + GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y + GROUND_HEIGHT, g_aGround[nCntGround].pos.z + GROUND_Z * 0.5f);
+	pVtx[2].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x - GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y, g_aGround[nCntGround].pos.z - GROUND_Z * 0.5f);
+	pVtx[3].pos = D3DXVECTOR3(g_aGround[nCntGround].pos.x + GROUND_WIDTH * 0.5f, g_aGround[nCntGround].pos.y, g_aGround[nCntGround].pos.z - GROUND_Z * 0.5f);
 
-		//nor
-		pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		pVtx[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		pVtx[2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-		pVtx[3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	//nor
+	pVtx[0].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[1].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	pVtx[3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
-		//カラー
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//カラー
+	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-		//テクスチャ
-		pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-		pVtx[1].tex = D3DXVECTOR2(GROUND_WIDTH / GROUND_WIDTH_DEF, 0.0f);
-		pVtx[2].tex = D3DXVECTOR2(0.0f, GROUND_Z / GROUND_Z_DEF);
-		pVtx[3].tex = D3DXVECTOR2(GROUND_WIDTH / GROUND_WIDTH_DEF, GROUND_Z / GROUND_Z_DEF);
-
-		pVtx += VT_MAX;
-	}
+	//テクスチャ
+	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
+	pVtx[1].tex = D3DXVECTOR2(GROUND_WIDTH / GROUND_WIDTH_DEF, 0.0f);
+	pVtx[2].tex = D3DXVECTOR2(0.0f, GROUND_Z / GROUND_Z_DEF);
+	pVtx[3].tex = D3DXVECTOR2(GROUND_WIDTH / GROUND_WIDTH_DEF, GROUND_Z / GROUND_Z_DEF);
 
 	g_pVtxBuffGround->Unlock();
 }
@@ -157,43 +152,7 @@ void DrawGround(void)
 			pDevice->DrawPrimitive
 			(
 				D3DPT_TRIANGLESTRIP,//タイプ
-				nCntGround * VT_MAX,//始まりの番号
-				2//ポリゴンの個数
-			);
-		}
-	}
-	for (nCntGround = 0; nCntGround < GROUND_MAX; nCntGround++)
-	{
-		if (g_aGround[nCntGround].bUse && g_aGround[nCntGround].bAlpha)
-		{
-			//マトリックス初期化
-			D3DXMatrixIdentity(&g_aGround[nCntGround].mtxWorld);
-
-			//向きの反映
-			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_aGround[nCntGround].rot.y, g_aGround[nCntGround].rot.x, g_aGround[nCntGround].rot.z);
-			D3DXMatrixMultiply(&g_aGround[nCntGround].mtxWorld, &g_aGround[nCntGround].mtxWorld, &mtxRot);
-
-			//位置の計算
-			D3DXMatrixTranslation(&mtxTrans, g_aGround[nCntGround].pos.x, g_aGround[nCntGround].pos.y, g_aGround[nCntGround].pos.z);
-			D3DXMatrixMultiply(&g_aGround[nCntGround].mtxWorld, &g_aGround[nCntGround].mtxWorld, &mtxTrans);
-
-			//ワールドマトリックスの設定
-			pDevice->SetTransform(D3DTS_WORLD, &g_aGround[nCntGround].mtxWorld);
-
-			//頂点バッファ
-			pDevice->SetStreamSource(0, g_pVtxBuffGround, 0, sizeof(VERTEX_3D));
-
-			//頂点フォーマットの設定
-			pDevice->SetFVF(FVF_VERTEX_3D);
-
-			//テクスチャの設定
-			pDevice->SetTexture(0, g_pTextureGround);
-
-			//ポリゴンの描画
-			pDevice->DrawPrimitive
-			(
-				D3DPT_TRIANGLESTRIP,//タイプ
-				nCntGround * VT_MAX,//始まりの番号
+				0,//始まりの番号
 				2//ポリゴンの個数
 			);
 		}
@@ -205,7 +164,6 @@ void DrawGround(void)
 //----------
 void SetGround(D3DXVECTOR3 pos, D3DXVECTOR3 rot)
 {
-	VERTEX_3D* pVtx;//頂点情報ポインタ
 	int nCntGround;
 	for (nCntGround = 0; nCntGround < GROUND_MAX; nCntGround++)
 	{
@@ -214,38 +172,6 @@ void SetGround(D3DXVECTOR3 pos, D3DXVECTOR3 rot)
 			g_aGround[nCntGround].pos = pos;
 			g_aGround[nCntGround].rot = rot;
 			g_aGround[nCntGround].bAlpha = false;
-			g_aGround[nCntGround].bUse = true;
-			break;
-		}
-	}
-
-	for (nCntGround = 0; nCntGround < GROUND_MAX; nCntGround++)
-	{
-		if (!g_aGround[nCntGround].bUse)
-		{
-			g_aGround[nCntGround].pos = pos;
-			g_aGround[nCntGround].rot = rot;
-			g_aGround[nCntGround].rot.z += D3DX_PI;
-			//正規化
-			if (g_aGround[nCntGround].rot.z > D3DX_PI)
-			{
-				g_aGround[nCntGround].rot.z -= D3DX_PI * 2.0f;
-			}
-			else if (g_aGround[nCntGround].rot.z < -D3DX_PI)
-			{
-				g_aGround[nCntGround].rot.z += D3DX_PI * 2.0f;
-			}
-			g_pVtxBuffGround->Lock(0, 0, (void**)&pVtx, 0);
-
-			pVtx += nCntGround * VT_MAX;
-			//カラー
-			pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, GROUND_ALPHA);
-			pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, GROUND_ALPHA);
-			pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, GROUND_ALPHA);
-			pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, GROUND_ALPHA);
-
-			g_pVtxBuffGround->Unlock();
-			g_aGround[nCntGround].bAlpha = true;
 			g_aGround[nCntGround].bUse = true;
 			break;
 		}

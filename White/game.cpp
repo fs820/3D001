@@ -10,42 +10,34 @@
 #include"player.h"
 #include"ground.h"
 #include"wall.h"
-#include"shadow.h"
-#include"billboard.h"
 #include"bullet.h"
 #include"explosion.h"
 #include"effect.h"
 #include"particle.h"
+#include"model.h"
+#include"pause.h"
+#include"time.h"
+#include"fade.h"
+#include"sound.h"
+#include"score.h"
+#include"camera.h"
+
+#include"shadow.h"
+#include"billboard.h"
 #include"stage.h"
 #include"file.h"
 #include"meshfield.h"
 #include"cylinder.h"
 #include"sphere.h"
-#include"model.h"
 #include"meshwall.h"
 #include"line.h"
 #include"snowball.h"
 
-#define SELECT_WIDTH (512)
-#define SELECT_HEIGHT (128)
-
-typedef enum
-{
-	SELECT_RESTART = 0,
-	SELECT_RETRY,
-	SELECT_BACK,
-	SELECT_EXIT,
-	SELECT_MAX,
-}SELECT;
-
 //グローバル変数
-LPDIRECT3DTEXTURE9 g_apTextureGame[SELECT_MAX] = { NULL };//テクスチャのポインタ
-LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffGame = NULL;//バッファのポインタ
 GAMESTATE g_gameState = GAMESTATE_NONE;
 int g_nCounterGameState = 0;
-int g_BossNumber = 0;//どのボスか
+int g_GameTime = 0;
 bool g_bClear = false;
-
 //--------------------
 //初期化処理
 //--------------------
@@ -54,20 +46,19 @@ void InitGame(void)
 	InitModel();
 	InitShadow();
 	InitStage();
-	InitGround();
 	InitMeshField();
 	InitLine();
 	InitCylinder();
 	InitSphere();
 	InitSnowBall();
-	InitWall();
 	InitMeshWall();
 	InitPlayer();//プレイヤー
 	InitBullet();
-	InitExplosion();
 	InitEffect();
 	InitParticle();
 	InitBillboard();
+	InitTime();
+	InitScore();
 
 	//空間
 	SetMeshField(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f));
@@ -78,95 +69,18 @@ void InitGame(void)
 	//ステージ
 	LoadStage();
 
-	LPDIRECT3DDEVICE9 pDevice;//デバイスへポインタ
-	VERTEX_2D* pVtx;//頂点情報ポインタ
-	D3DXVECTOR3 posSelect;//スコアの位置
+	SetScore(0, true);
 
-	//デバイスの取得
-	pDevice = GetDevice();
+	//カメラ
+	GameCamera();
 
-	//バッファーの設定
-	pDevice->CreateVertexBuffer
-	(
-		sizeof(VERTEX_2D) * VT_MAX * SELECT_MAX,
-		D3DUSAGE_WRITEONLY,
-		FVF_VERTEX_2D,
-		D3DPOOL_MANAGED,
-		&g_pVtxBuffGame,
-		NULL
-	);
-
-	//テクスチャの読み込み
-	D3DXCreateTextureFromFile
-	(
-		pDevice,
-		0,
-		&g_apTextureGame[0]
-	);
-
-	//テクスチャの読み込み
-	D3DXCreateTextureFromFile
-	(
-		pDevice,
-		0,
-		&g_apTextureGame[1]
-	);
-
-	//テクスチャの読み込み
-	D3DXCreateTextureFromFile
-	(
-		pDevice,
-		0,
-		&g_apTextureGame[2]
-	);
-
-	//テクスチャの読み込み
-	D3DXCreateTextureFromFile
-	(
-		pDevice,
-		0,
-		&g_apTextureGame[3]
-	);
-
-
+	D3DXVECTOR3 posScore;//スコアの位置
 	g_gameState = GAMESTATE_NORMAL;
 	g_nCounterGameState = 0;
-	posSelect = D3DXVECTOR3(SCREEN_WIDTH/2,SCREEN_HEIGHT/2-SELECT_HEIGHT*1.5f,0.0f);
+	g_GameTime = 0;
 	g_bClear = false;
 
-	g_pVtxBuffGame->Lock(0, 0, (void**)&pVtx, 0);//プレイヤーバッファのロック
-
-	for (int i = 0; i < SELECT_MAX; i++)
-	{
-		//座標設定
-		pVtx[0].pos = D3DXVECTOR3(posSelect.x - SELECT_WIDTH / 2, posSelect.y - SELECT_HEIGHT / 2 + i * SELECT_HEIGHT, posSelect.z);
-		pVtx[1].pos = D3DXVECTOR3(posSelect.x + SELECT_WIDTH / 2, posSelect.y - SELECT_HEIGHT / 2 + i * SELECT_HEIGHT, posSelect.z);
-		pVtx[2].pos = D3DXVECTOR3(posSelect.x - SELECT_WIDTH / 2, posSelect.y + SELECT_HEIGHT / 2 + i * SELECT_HEIGHT, posSelect.z);
-		pVtx[3].pos = D3DXVECTOR3(posSelect.x + SELECT_WIDTH / 2, posSelect.y + SELECT_HEIGHT / 2 + i * SELECT_HEIGHT, posSelect.z);
-
-		//rhw
-		pVtx[0].rhw = 1.0f;
-		pVtx[1].rhw = 1.0f;
-		pVtx[2].rhw = 1.0f;
-		pVtx[3].rhw = 1.0f;
-
-		//カラー
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-
-		//テクスチャ
-		pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-		pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-		pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-		pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
-
-		pVtx += VT_MAX;
-
-	}
-
-	g_pVtxBuffGame->Unlock();//プレイヤーバッファのアンロック
+	PlaySound(SOUND_LABEL_BGM);
 }
 
 //------------------
@@ -175,7 +89,10 @@ void InitGame(void)
 void UninitGame(void)
 {
 	g_gameState = GAMESTATE_NONE;
+	EndSound();
 
+	UninitScore();
+	UninitTime();
 	UninitParticle();
 	UninitEffect();
 	UninitExplosion();
@@ -200,23 +117,116 @@ void UninitGame(void)
 //--------------
 void UpdateGame(void)
 {
-	UpdateModel();
-	UpdateShadow();
-	UpdateStage();
-	UpdateGround();
-	UpdatePlayer();//プレイヤー
-	UpdateWall();
-	UpdateMeshWall();
-	UpdateMeshField();
-	UpdateLine();
-	UpdateCylinder();
-	UpdateSphere();
-	UpdateSnowBall();
-	UpdateBillboard();
-	UpdateBullet();
-	UpdateExplosion();
-	UpdateEffect();
-	UpdateParticle();
+	if (GetKeyboradTrigger(DIK_RETURN) == true || GetJoykeyTrigger(JOYKEY_A, CONTROLLER_MAX) == true || GetJoykeyTrigger(JOYKEY_START, CONTROLLER_MAX) == true || GetMouseTrigger(MOUSE_SENTER) == true)
+	{
+		FADE fade;
+		fade = GetFade();
+		if (fade == FADE_NONE)
+		{
+			Pause();
+		}
+	}
+	for (int i = 0; i < ControllerNum(CONTYPE_D); i++)
+	{
+		if (!strcmp(ControllerName((CONTROLLER)i), ELE_CON))
+		{
+			if (GetdJoykeyTrigger(ELEKEY_A, (CONTROLLER)i) || GetdJoykeyTrigger(ELEKEY_START, (CONTROLLER)i))
+			{
+				Pause();
+			}
+		}
+		else if (!strcmp(ControllerName((CONTROLLER)i), PS_CON))
+		{
+			if (GetdJoykeyTrigger(PSKEY_CI, (CONTROLLER)i) || GetdJoykeyTrigger(PSKEY_START, (CONTROLLER)i))
+			{
+				FADE fade;
+				fade = GetFade();
+				if (fade == FADE_NONE)
+				{
+					Pause();
+				}
+			}
+		}
+		else if (!strcmp(ControllerName((CONTROLLER)i), NIN_CON))
+		{
+			if (GetdJoykeyTrigger(NINKEY_A, (CONTROLLER)i) || GetdJoykeyTrigger(NINKEY_＋, (CONTROLLER)i))
+			{
+				FADE fade;
+				fade = GetFade();
+				if (fade == FADE_NONE)
+				{
+					Pause();
+				}
+			}
+		}
+		else if (!IsXInputControllerConnected((CONTROLLER)i) && IsDirectInputControllerConnected((CONTROLLER)i))
+		{
+			if (GetdJoykeyTrigger(DKEY_A, (CONTROLLER)i) || GetdJoykeyTrigger(DKEY_START, (CONTROLLER)i))
+			{
+				Pause();
+			}
+		}
+	}
+	
+	if (!bPause())
+	{
+		Player* pPlayer;
+
+		pPlayer = GetPlayer();
+
+		switch (g_gameState)
+		{
+		case GAMESTATE_NORMAL:
+			g_GameTime++;
+			SetTime((float)(g_GameTime / (float)FRAME));
+			if (g_GameTime / FRAME >= TIME_LIMIT)
+			{
+				g_gameState = GAMESTATE_END;
+				g_bClear = true;
+			}
+			else if (pPlayer->state == PLAYERSTATE_DIE)
+			{
+				g_gameState = GAMESTATE_END;
+				g_bClear = false;
+			}
+			break;
+		case GAMESTATE_END:
+			g_nCounterGameState++;
+			if (g_nCounterGameState >= INTER)
+			{
+				FADE fade;
+				fade = GetFade();
+				if (fade == FADE_NONE)
+				{
+					//サウンド
+					StopSound(SOUND_LABEL_BGM4);
+					//切替
+					SetFade(MODE_RESULT);
+				}
+			}
+			break;
+		}
+
+		UpdateModel();
+		UpdateShadow();
+		UpdateStage();
+		UpdateGround();
+		UpdatePlayer();//プレイヤー
+		UpdateWall();
+		UpdateMeshWall();
+		UpdateMeshField();
+		UpdateLine();
+		UpdateCylinder();
+		UpdateSphere();
+		UpdateSnowBall();
+		UpdateBillboard();
+		UpdateBullet();
+		UpdateExplosion();
+		UpdateEffect();
+		UpdateParticle();
+		UpdateScore();
+		AddScore((int)(10000.0f * ((float)(rand() % 101) / 100.0f)));
+	}
 }
 
 //-------------------
@@ -225,50 +235,25 @@ void UpdateGame(void)
 void DrawGame(void)
 {
 	DrawModel();
-	DrawLine();
 	DrawGround();
 	DrawMeshField();
+	DrawLine();
 	DrawWall();
 	DrawCylinder();
 	DrawSphere();
 	DrawShadow();
 	DrawStage();
-	DrawMeshWall();
 	DrawBillboard();
+	DrawMeshWall();
 	DrawEffect();
 	DrawBullet();
 	DrawExplosion();
 	DrawSnowBall();
 	DrawPlayer();//プレイヤー
 	DrawAlphaWall();
-
-	if(g_gameState==GAMESTATE_PAUSE)
-	{
-		LPDIRECT3DDEVICE9 pDevice;//デバイスへポインタ
-
-        //デバイスの取得
-		pDevice = GetDevice();
-
-		//頂点バッファ
-		pDevice->SetStreamSource(0, g_pVtxBuffGame, 0, sizeof(VERTEX_2D));
-
-		//頂点フォーマットの設定
-		pDevice->SetFVF(FVF_VERTEX_2D);
-
-		for (int i = 0; i < SELECT_MAX; i++)
-		{
-			//テクスチャの設定
-			pDevice->SetTexture(0, g_apTextureGame[i]);
-
-			//背景の描画
-			pDevice->DrawPrimitive
-			(
-				D3DPT_TRIANGLESTRIP,//タイプ
-				i*VT_MAX,//始まりの番号
-				2//ポリゴンの個数
-			);
-		}
-	}
+	DrawAlphaMeshWall();
+	DrawTime();
+	DrawScore();
 }
 
 //----------------------
@@ -286,22 +271,6 @@ void SetGameState(GAMESTATE state)
 GAMESTATE GetGameState(void)
 {
 	return g_gameState;
-}
-
-//---------------------------
-//どのボスか
-//---------------------------
-void SetBossNumber(int Boss)
-{
-	g_BossNumber = Boss;
-}
-
-//---------------------------
-//ボス取得	
-//---------------------------
-int GetBossNumber(void)
-{
-	return g_BossNumber;
 }
 
 //---------------------

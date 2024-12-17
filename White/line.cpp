@@ -27,7 +27,7 @@ void InitLine(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX_LINE * LINE_MAX,
+		sizeof(VERTEX_3D) * VT_MAX_LINE,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -46,7 +46,7 @@ void InitLine(void)
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
-		sizeof(WORD) * INDEX_NUM_LINE * LINE_MAX,
+		sizeof(WORD) * INDEX_NUM_LINE,
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
@@ -54,11 +54,13 @@ void InitLine(void)
 		NULL
 	);
 
-	int nCntLine, nCntLine2, nCntLine3;
+	int nCntLine, nCntLine2;
 	for (nCntLine = 0; nCntLine < LINE_MAX; nCntLine++)
 	{
 		g_aLine[nCntLine].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_aLine[nCntLine].rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_aLine[nCntLine].fLength = sqrtf(LINE_WIDTH * LINE_WIDTH + LINE_Z * LINE_Z) / 2.0f;//対角線の長さ
+		g_aLine[nCntLine].fAngle = atan2f(LINE_WIDTH, LINE_Z);//角度
 		g_aLine[nCntLine].bUse = false;
 	}
 	//1つ目
@@ -66,26 +68,22 @@ void InitLine(void)
 
 	g_pVtxBuffLine->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntLine = 0; nCntLine < LINE_MAX; nCntLine++)
-	{//メッシュフィールド数
-		for (nCntLine2 = 0; nCntLine2 < LINE_ZNUM + 1; nCntLine2++)
-		{//1枚分のZ軸のループ
-			for (nCntLine3 = 0; nCntLine3 < LINE_XNUM + 1; nCntLine3++)
-			{//1枚分のX軸のループ
-				//座標設定
-				pVtx[nCntLine2 * (LINE_XNUM + 1) + nCntLine3].pos = D3DXVECTOR3(g_aLine[nCntLine].pos.x - LINE_WIDTH * 0.5f + (LINE_WIDTH / LINE_XNUM) * nCntLine3, g_aLine[nCntLine].pos.y + LINE_HEIGHT, g_aLine[nCntLine].pos.z + LINE_Z * 0.5f - (LINE_Z / LINE_ZNUM) * nCntLine2);
+	for (nCntLine = 0; nCntLine< LINE_ZNUM + 1; nCntLine++)
+	{//1枚分のZ軸のループ
+		for (nCntLine2 = 0; nCntLine2 < LINE_XNUM + 1; nCntLine2++)
+		{//1枚分のX軸のループ
+			//座標設定
+			pVtx[nCntLine * (LINE_XNUM + 1) + nCntLine2].pos = D3DXVECTOR3(-LINE_WIDTH * 0.5f + (LINE_WIDTH / LINE_XNUM) * nCntLine2, LINE_HEIGHT, LINE_Z * 0.5f - (LINE_Z / LINE_ZNUM) * nCntLine);
 
-				//nor
-				pVtx[nCntLine2 * (LINE_XNUM + 1) + nCntLine3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+			//nor
+			pVtx[nCntLine * (LINE_XNUM + 1) + nCntLine2].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
-				//カラー
-				pVtx[nCntLine2 * (LINE_XNUM + 1) + nCntLine3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+			//カラー
+			pVtx[nCntLine * (LINE_XNUM + 1) + nCntLine2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-				//テクスチャ
-				pVtx[nCntLine2 * (LINE_XNUM + 1) + nCntLine3].tex = D3DXVECTOR2(((LINE_WIDTH / LINE_WIDTH_DEF) / LINE_XNUM) * nCntLine3, ((LINE_Z / LINE_Z_DEF) / LINE_ZNUM) * nCntLine2);
-			}
+			//テクスチャ
+			pVtx[nCntLine * (LINE_XNUM + 1) + nCntLine2].tex = D3DXVECTOR2(((LINE_WIDTH / LINE_WIDTH_DEF) / LINE_XNUM) * nCntLine2, ((LINE_Z / LINE_Z_DEF) / LINE_ZNUM) * nCntLine);
 		}
-		pVtx += VT_MAX_LINE;
 	}
 
 	g_pVtxBuffLine->Unlock();
@@ -93,22 +91,18 @@ void InitLine(void)
 	WORD* pIdx;
 	g_pIdxBuffLine->Lock(0, 0, (void**)&pIdx, 0);
 
-	for (nCntLine = 0; nCntLine < LINE_MAX; nCntLine++)
+	for (nCntLine = 0; nCntLine < INDEX_NUM_LINE - (LINE_ZNUM - 1) * 2; nCntLine++)
 	{
-		for (nCntLine2 = 0; nCntLine2 < INDEX_NUM_LINE - (LINE_ZNUM - 1) * 2; nCntLine2++)
+		if (nCntLine % ((LINE_XNUM + 1) * 2) == 0 && nCntLine != 0)
 		{
-			if (nCntLine2 % ((LINE_XNUM + 1) * 2) == 0 && nCntLine2 != 0)
-			{
-				//インデックス指定
-				pIdx[nCntLine2 - 2 + ((nCntLine2 / ((LINE_XNUM + 1) * 2)) * 2)] = (LINE_XNUM + 1) - (LINE_XNUM + 1) * ((nCntLine2 - 1) % 2) + ((nCntLine2 - 1) / 2);
-				//インデックス指定
-				pIdx[nCntLine2 - 1 + ((nCntLine2 / ((LINE_XNUM + 1) * 2)) * 2)] = (LINE_XNUM + 1) - (LINE_XNUM + 1) * (nCntLine2 % 2) + (nCntLine2 / 2);
-			}
-
 			//インデックス指定
-			pIdx[nCntLine2 + ((nCntLine2 / ((LINE_XNUM + 1) * 2)) * 2)] = (LINE_XNUM + 1) - (LINE_XNUM + 1) * (nCntLine2 % 2) + (nCntLine2 / 2);
+			pIdx[nCntLine - 2 + ((nCntLine / ((LINE_XNUM + 1) * 2)) * 2)] = (LINE_XNUM + 1) - (LINE_XNUM + 1) * ((nCntLine - 1) % 2) + ((nCntLine - 1) / 2);
+			//インデックス指定
+			pIdx[nCntLine - 1 + ((nCntLine / ((LINE_XNUM + 1) * 2)) * 2)] = (LINE_XNUM + 1) - (LINE_XNUM + 1) * (nCntLine % 2) + (nCntLine / 2);
 		}
-		pIdx += INDEX_NUM_LINE;
+
+		//インデックス指定
+		pIdx[nCntLine + ((nCntLine / ((LINE_XNUM + 1) * 2)) * 2)] = (LINE_XNUM + 1) - (LINE_XNUM + 1) * (nCntLine % 2) + (nCntLine / 2);
 	}
 
 	g_pIdxBuffLine->Unlock();
@@ -200,7 +194,7 @@ void DrawLine(void)
 				0,
 				0,
 				VT_MAX_LINE,//頂点数
-				nCntLine * INDEX_NUM_LINE,
+				0,
 				POLYGON_NUM_LINE//ポリゴンの個数
 			);
 		}
@@ -220,6 +214,8 @@ void SetLine(D3DXVECTOR3 pos, D3DXVECTOR3 rot, D3DXVECTOR3 scale)
 			g_aLine[nCntLine].pos = pos;
 			g_aLine[nCntLine].rot = rot;
 			g_aLine[nCntLine].scale = scale;
+			g_aLine[nCntLine].fAngle = atan2f((LINE_WIDTH * g_aLine[nCntLine].scale.x), (LINE_Z * g_aLine[nCntLine].scale.z));//角度
+			g_aLine[nCntLine].fLength = sqrtf((LINE_WIDTH * g_aLine[nCntLine].scale.x) * (LINE_WIDTH * g_aLine[nCntLine].scale.x) + (LINE_Z * g_aLine[nCntLine].scale.z) * (LINE_Z * g_aLine[nCntLine].scale.z)) / 2.0f;//対角線の長さ
 			g_aLine[nCntLine].bUse = true;
 			break;
 		}
@@ -234,35 +230,42 @@ void HitLine(void)
 	Player* pPlayer = GetPlayer();
 	D3DXVECTOR3 aPos[4] = {}, Fieldvec = {}, Posvec = {};
 	int nCntLine;
+	bool OnLine = false;
 	for (nCntLine = 0; nCntLine < LINE_MAX; nCntLine++)
 	{//地面の数
 		if (g_aLine[nCntLine].bUse)
 		{//使っている線
-			aPos[0] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + LINE_WIDTH * 0.5f * g_aLine[nCntLine].scale.x * sinf(g_aLine[nCntLine].rot.y + D3DX_PI * -0.5f), g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + LINE_Z * 0.5f * g_aLine[nCntLine].scale.z * cosf(g_aLine[nCntLine].rot.y + D3DX_PI * -0.5f));
-			aPos[1] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + LINE_WIDTH * 0.5f * g_aLine[nCntLine].scale.x * sinf(g_aLine[nCntLine].rot.y + D3DX_PI * 0.5f), g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + LINE_Z * 0.5f * g_aLine[nCntLine].scale.z * cosf(g_aLine[nCntLine].rot.y + D3DX_PI * 0.5f));
-			aPos[2] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + LINE_WIDTH * 0.5f * g_aLine[nCntLine].scale.x * sinf(g_aLine[nCntLine].rot.y + D3DX_PI * 0.5f), g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + LINE_Z * 0.5f * g_aLine[nCntLine].scale.z * cosf(g_aLine[nCntLine].rot.y + D3DX_PI * 0.5f));
-			aPos[3] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + LINE_WIDTH * 0.5f * g_aLine[nCntLine].scale.x * sinf(g_aLine[nCntLine].rot.y + D3DX_PI * -0.5f), g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + LINE_Z * 0.5f * g_aLine[nCntLine].scale.z * cosf(g_aLine[nCntLine].rot.y + D3DX_PI * -0.5f));
+			aPos[0] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + sinf(g_aLine[nCntLine].rot.y - g_aLine[nCntLine].fAngle) * g_aLine[nCntLine].fLength, g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + cosf(g_aLine[nCntLine].rot.y - g_aLine[nCntLine].fAngle) * g_aLine[nCntLine].fLength);
+			aPos[1] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + sinf(g_aLine[nCntLine].rot.y + g_aLine[nCntLine].fAngle) * g_aLine[nCntLine].fLength, g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + cosf(g_aLine[nCntLine].rot.y + g_aLine[nCntLine].fAngle) * g_aLine[nCntLine].fLength);
+			aPos[2] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + sinf(g_aLine[nCntLine].rot.y - (D3DX_PI + g_aLine[nCntLine].fAngle)) * g_aLine[nCntLine].fLength, g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + cosf(g_aLine[nCntLine].rot.y - (D3DX_PI + g_aLine[nCntLine].fAngle)) * g_aLine[nCntLine].fLength);
+			aPos[3] = D3DXVECTOR3(g_aLine[nCntLine].pos.x + sinf(g_aLine[nCntLine].rot.y - (D3DX_PI - g_aLine[nCntLine].fAngle)) * g_aLine[nCntLine].fLength, g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z + cosf(g_aLine[nCntLine].rot.y - (D3DX_PI - g_aLine[nCntLine].fAngle)) * g_aLine[nCntLine].fLength);
+
 			Fieldvec = aPos[1] - aPos[0];//壁のベクトル
 			Posvec = pPlayer->pos - aPos[0];//壁に対するプレイヤーのベクトル
-			if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f && !pPlayer->bJump)
+			if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f)
 			{//線上
 				Fieldvec = aPos[2] - aPos[1];//壁のベクトル
 				Posvec = pPlayer->pos - aPos[1];//壁に対するプレイヤーのベクトル
-				if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f && !pPlayer->bJump)
+				if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f)
 				{//線上
 					Fieldvec = aPos[3] - aPos[2];//壁のベクトル
 					Posvec = pPlayer->pos - aPos[2];//壁に対するプレイヤーのベクトル
-					if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f && !pPlayer->bJump)
+					if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f)
 					{//線上
 						Fieldvec = aPos[0] - aPos[3];//壁のベクトル
 						Posvec = pPlayer->pos - aPos[3];//壁に対するプレイヤーのベクトル
-						if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f && !pPlayer->bJump)
+						if ((Fieldvec.z * Posvec.x) - (Fieldvec.x * Posvec.z) >= 0.0f)
 						{//線上
-							pPlayer->aModel[1].rot.x++;
+							OnLine = true;
 						}
 					}
 				}
 			}
 		}
+	}
+
+	if (!OnLine && !pPlayer->bJump)
+	{
+		pPlayer->nLife--;
 	}
 }

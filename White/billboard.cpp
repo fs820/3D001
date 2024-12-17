@@ -27,7 +27,7 @@ void InitBillboard(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX * BILLBOARD_MAX,
+		sizeof(VERTEX_3D) * VT_MAX,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -56,34 +56,29 @@ void InitBillboard(void)
 
 	g_pVtxBuffBillboard->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntBillboard = 0; nCntBillboard < BILLBOARD_MAX; nCntBillboard++)
-	{
-		//座標設定
-		pVtx[0].pos = D3DXVECTOR3(g_aBillboard[nCntBillboard].pos.x - BILLBOARD_WIDTH * 0.5f, g_aBillboard[nCntBillboard].pos.y + BILLBOARD_HEIGHT, 0.0f);
-		pVtx[1].pos = D3DXVECTOR3(g_aBillboard[nCntBillboard].pos.x + BILLBOARD_WIDTH * 0.5f, g_aBillboard[nCntBillboard].pos.y + BILLBOARD_HEIGHT, 0.0f);
-		pVtx[2].pos = D3DXVECTOR3(g_aBillboard[nCntBillboard].pos.x - BILLBOARD_WIDTH * 0.5f, g_aBillboard[nCntBillboard].pos.y, 0.0f);
-		pVtx[3].pos = D3DXVECTOR3(g_aBillboard[nCntBillboard].pos.x + BILLBOARD_WIDTH * 0.5f, g_aBillboard[nCntBillboard].pos.y, 0.0f);
+	//座標設定
+	pVtx[0].pos = D3DXVECTOR3(-BILLBOARD_WIDTH * 0.5f, BILLBOARD_HEIGHT, 0.0f);
+	pVtx[1].pos = D3DXVECTOR3(BILLBOARD_WIDTH * 0.5f, BILLBOARD_HEIGHT, 0.0f);
+	pVtx[2].pos = D3DXVECTOR3(-BILLBOARD_WIDTH * 0.5f, 0.0f, 0.0f);
+	pVtx[3].pos = D3DXVECTOR3(BILLBOARD_WIDTH * 0.5f, 0.0f, 0.0f);
 
-		//nor
-		pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-		pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-		pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
-		pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	//nor
+	pVtx[0].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[1].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[2].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	pVtx[3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 
-		//カラー
-		pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-		pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	//カラー
+	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[2].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+	pVtx[3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-		//テクスチャ
-		pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
-		pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
-		pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
-		pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
-
-		pVtx += VT_MAX;
-	}
+	//テクスチャ
+	pVtx[0].tex = D3DXVECTOR2(0.0f, 0.0f);
+	pVtx[1].tex = D3DXVECTOR2(1.0f, 0.0f);
+	pVtx[2].tex = D3DXVECTOR2(0.0f, 1.0f);
+	pVtx[3].tex = D3DXVECTOR2(1.0f, 1.0f);
 
 	g_pVtxBuffBillboard->Unlock();
 }
@@ -186,7 +181,7 @@ void DrawBillboard(void)
 			pDevice->DrawPrimitive
 			(
 				D3DPT_TRIANGLESTRIP,//タイプ
-				nCntBillboard * VT_MAX,//始まりの番号
+				0,//始まりの番号
 				2//ポリゴンの個数
 			);
 		}

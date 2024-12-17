@@ -40,6 +40,7 @@ void InitMeshWall(void);//ポリゴンの初期化処理
 void UninitMeshWall(void);//ポリゴンの終了処理
 void UpdateMeshWall(void);//ポリゴンの更新処理
 void DrawMeshWall(void);//ポリゴンの描画処理
+void DrawAlphaMeshWall(void);//ポリゴンの描画処理
 void SetMeshWall(D3DXVECTOR3 pos, D3DXVECTOR3 rot, D3DXVECTOR3 scale);
 MeshWall* GetMeshWall(void);
 void CollisionMeshWall(void);

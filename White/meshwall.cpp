@@ -27,7 +27,7 @@ void InitMeshWall(void)
 
 	pDevice->CreateVertexBuffer
 	(
-		sizeof(VERTEX_3D) * VT_MAX_MESH_WALL * MESHWALL_MAX,
+		sizeof(VERTEX_3D) * VT_MAX_MESH_WALL * 2,
 		D3DUSAGE_WRITEONLY,
 		FVF_VERTEX_3D,
 		D3DPOOL_MANAGED,
@@ -46,7 +46,7 @@ void InitMeshWall(void)
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
-		sizeof(WORD) * INDEX_NUM_WALL * MESHWALL_MAX,
+		sizeof(WORD) * INDEX_NUM_WALL,
 		D3DUSAGE_WRITEONLY,
 		D3DFMT_INDEX16,
 		D3DPOOL_MANAGED,
@@ -66,20 +66,20 @@ void InitMeshWall(void)
 
 	g_pVtxBuffMeshWall->Lock(0, 0, (void**)&pVtx, 0);
 
-	for (nCntMeshWall = 0; nCntMeshWall < MESHWALL_MAX; nCntMeshWall++)
+	for (nCntMeshWall = 0; nCntMeshWall < 2; nCntMeshWall++)
 	{//メッシュフィールド数
 		for (nCntMeshWall2 = 0; nCntMeshWall2 < MESHWALL_YNUM + 1; nCntMeshWall2++)
 		{//1枚分のZ軸のループ
 			for (nCntMeshWall3 = 0; nCntMeshWall3 < MESHWALL_XNUM + 1; nCntMeshWall3++)
 			{//1枚分のX軸のループ
 				//座標設定
-				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].pos = D3DXVECTOR3(g_aMeshWall[nCntMeshWall].pos.x - MESHWALL_WIDTH * 0.5f + (MESHWALL_WIDTH / MESHWALL_XNUM) * nCntMeshWall3, g_aMeshWall[nCntMeshWall].pos.y + MESHWALL_HEIGHT - (MESHWALL_HEIGHT / MESHWALL_YNUM) * nCntMeshWall2, g_aMeshWall[nCntMeshWall].pos.z + MESHWALL_Z);
+				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].pos = D3DXVECTOR3(-MESHWALL_WIDTH * 0.5f + (MESHWALL_WIDTH / MESHWALL_XNUM) * nCntMeshWall3, MESHWALL_HEIGHT - (MESHWALL_HEIGHT / MESHWALL_YNUM) * nCntMeshWall2, MESHWALL_Z);
 
 				//nor
-				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].nor = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].nor = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 
 				//カラー
-				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f - (1.0f - WALL_ALPHA_MESH) * nCntMeshWall);
 
 				//テクスチャ
 				pVtx[nCntMeshWall2 * (MESHWALL_XNUM + 1) + nCntMeshWall3].tex = D3DXVECTOR2(((MESHWALL_WIDTH / MESHWALL_WIDTH_DEF) / MESHWALL_XNUM) * nCntMeshWall3, ((MESHWALL_HEIGHT / MESHWALL_HEIGHT_DEF) / MESHWALL_YNUM) * nCntMeshWall2);
@@ -93,22 +93,18 @@ void InitMeshWall(void)
 	WORD* pIdx;
 	g_pIdxBuffMeshWall->Lock(0, 0, (void**)&pIdx, 0);
 
-	for (nCntMeshWall = 0; nCntMeshWall < MESHWALL_MAX; nCntMeshWall++)
+	for (nCntMeshWall = 0; nCntMeshWall < INDEX_NUM_WALL - (MESHWALL_YNUM - 1) * 2; nCntMeshWall++)
 	{
-		for (nCntMeshWall2 = 0; nCntMeshWall2 < INDEX_NUM_WALL - (MESHWALL_YNUM - 1) * 2; nCntMeshWall2++)
+		if (nCntMeshWall % ((MESHWALL_XNUM + 1) * 2) == 0 && nCntMeshWall != 0)
 		{
-			if (nCntMeshWall2 % ((MESHWALL_XNUM + 1) * 2) == 0 && nCntMeshWall2 != 0)
-			{
-				//インデックス指定
-				pIdx[nCntMeshWall2 - 2 + ((nCntMeshWall2 / ((MESHWALL_XNUM + 1) * 2)) * 2)] = (MESHWALL_XNUM + 1) - (MESHWALL_XNUM + 1) * ((nCntMeshWall2 - 1) % 2) + ((nCntMeshWall2 - 1) / 2);
-				//インデックス指定
-				pIdx[nCntMeshWall2 - 1 + ((nCntMeshWall2 / ((MESHWALL_XNUM + 1) * 2)) * 2)] = (MESHWALL_XNUM + 1) - (MESHWALL_XNUM + 1) * (nCntMeshWall2 % 2) + (nCntMeshWall2 / 2);
-			}
-
 			//インデックス指定
-			pIdx[nCntMeshWall2 + ((nCntMeshWall2 / ((MESHWALL_XNUM + 1) * 2)) * 2)] = (MESHWALL_XNUM + 1) - (MESHWALL_XNUM + 1) * (nCntMeshWall2 % 2) + (nCntMeshWall2 / 2);
+			pIdx[nCntMeshWall - 2 + ((nCntMeshWall / ((MESHWALL_XNUM + 1) * 2)) * 2)] = (MESHWALL_XNUM + 1) - (MESHWALL_XNUM + 1) * ((nCntMeshWall - 1) % 2) + ((nCntMeshWall - 1) / 2);
+			//インデックス指定
+			pIdx[nCntMeshWall - 1 + ((nCntMeshWall / ((MESHWALL_XNUM + 1) * 2)) * 2)] = (MESHWALL_XNUM + 1) - (MESHWALL_XNUM + 1) * (nCntMeshWall % 2) + (nCntMeshWall / 2);
 		}
-		pIdx += INDEX_NUM_WALL;
+
+		//インデックス指定
+		pIdx[nCntMeshWall + ((nCntMeshWall / ((MESHWALL_XNUM + 1) * 2)) * 2)] = (MESHWALL_XNUM + 1) - (MESHWALL_XNUM + 1) * (nCntMeshWall % 2) + (nCntMeshWall / 2);
 	}
 
 	g_pIdxBuffMeshWall->Unlock();
@@ -161,7 +157,7 @@ void DrawMeshWall(void)
 	int nCntMeshWall;
 	for (nCntMeshWall = 0; nCntMeshWall < MESHWALL_MAX; nCntMeshWall++)
 	{
-		if (g_aMeshWall[nCntMeshWall].bUse)
+		if (g_aMeshWall[nCntMeshWall].bUse && !g_aMeshWall[nCntMeshWall].bAlpha)
 		{
 			//マトリックス初期化
 			D3DXMatrixIdentity(&g_aMeshWall[nCntMeshWall].mtxWorld);
@@ -200,7 +196,67 @@ void DrawMeshWall(void)
 				0,
 				0,
 				VT_MAX_MESH_WALL,//頂点数
-				nCntMeshWall * INDEX_NUM_WALL,
+				0,
+				POLYGON_NUM_WALL//ポリゴンの個数
+			);
+		}
+	}
+}
+
+//-------------------
+//ポリゴン描画処理
+//-------------------
+void DrawAlphaMeshWall(void)
+{
+	LPDIRECT3DDEVICE9 pDevice;//デバイスへポインタ
+	D3DXMATRIX mtxScale, mtxRot, mtxTrans;//計算マトリックス
+
+	//デバイスの取得
+	pDevice = GetDevice();
+
+	int nCntMeshWall;
+	for (nCntMeshWall = 0; nCntMeshWall < MESHWALL_MAX; nCntMeshWall++)
+	{
+		if (g_aMeshWall[nCntMeshWall].bUse && g_aMeshWall[nCntMeshWall].bAlpha)
+		{
+			//マトリックス初期化
+			D3DXMatrixIdentity(&g_aMeshWall[nCntMeshWall].mtxWorld);
+
+			//大きさの反映
+			D3DXMatrixScaling(&mtxScale, g_aMeshWall[nCntMeshWall].scale.x, g_aMeshWall[nCntMeshWall].scale.y, g_aMeshWall[nCntMeshWall].scale.z);
+			D3DXMatrixMultiply(&g_aMeshWall[nCntMeshWall].mtxWorld, &g_aMeshWall[nCntMeshWall].mtxWorld, &mtxScale);
+
+			//向きの反映
+			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_aMeshWall[nCntMeshWall].rot.y, g_aMeshWall[nCntMeshWall].rot.x, g_aMeshWall[nCntMeshWall].rot.z);
+			D3DXMatrixMultiply(&g_aMeshWall[nCntMeshWall].mtxWorld, &g_aMeshWall[nCntMeshWall].mtxWorld, &mtxRot);
+
+			//位置の計算
+			D3DXMatrixTranslation(&mtxTrans, g_aMeshWall[nCntMeshWall].pos.x, g_aMeshWall[nCntMeshWall].pos.y, g_aMeshWall[nCntMeshWall].pos.z);
+			D3DXMatrixMultiply(&g_aMeshWall[nCntMeshWall].mtxWorld, &g_aMeshWall[nCntMeshWall].mtxWorld, &mtxTrans);
+
+			//ワールドマトリックスの設定
+			pDevice->SetTransform(D3DTS_WORLD, &g_aMeshWall[nCntMeshWall].mtxWorld);
+
+			//頂点バッファ
+			pDevice->SetStreamSource(0, g_pVtxBuffMeshWall, 0, sizeof(VERTEX_3D));
+
+			//インデックスバッファをデータストリームに設定
+			pDevice->SetIndices(g_pIdxBuffMeshWall);
+
+			//頂点フォーマットの設定
+			pDevice->SetFVF(FVF_VERTEX_3D);
+
+			//テクスチャの設定
+			pDevice->SetTexture(0, g_pTextureMeshWall);
+
+			//ポリゴンの描画
+			pDevice->DrawIndexedPrimitive
+			(
+				D3DPT_TRIANGLESTRIP,//タイプ
+				VT_MAX_MESH_WALL,
+				0,
+				VT_MAX_MESH_WALL,//頂点数
+				0,
 				POLYGON_NUM_WALL//ポリゴンの個数
 			);
 		}
@@ -244,7 +300,6 @@ void SetMeshWall(D3DXVECTOR3 pos, D3DXVECTOR3 rot, D3DXVECTOR3 scale)
 				g_aMeshWall[nCntMeshWall].rot.y += D3DX_PI * 2.0f;
 			}
 			g_aMeshWall[nCntMeshWall].scale = scale;
-
 			g_aMeshWall[nCntMeshWall].bAlpha = true;
 			g_aMeshWall[nCntMeshWall].bUse = true;
 			break;
