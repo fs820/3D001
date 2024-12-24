@@ -35,6 +35,5 @@ void InitModel(void);//ポリゴンの初期化処理
 void UninitModel(void);//ポリゴンの終了処理
 void UpdateModel(void);//ポリゴンの更新処理
 void DrawModel(void);//ポリゴンの描画処理
-Model* GetModel(void);
 
 #endif _MODEL_H_

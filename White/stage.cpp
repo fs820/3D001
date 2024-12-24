@@ -10,6 +10,8 @@
 #include"input.h"
 #include"shadow.h"
 #include"player.h"
+#include"Dog.h"
+#include"snowball.h"
 
 //グローバル変数宣言
 Stage g_aStage[STAGE_MAX] = {};
@@ -266,6 +268,8 @@ bool CollisionStage(Stage** pStage)
 {
 	bool bRanding = false;
 	Player* pPlayer = GetPlayer();
+	Dog* pDog = GetDog();
+	SnowBall* pSnowBall = GetSnowBall();
 	D3DXVECTOR3 aPos[8] = {}, Stagevec = {}, Posvec = {}, PosOldvec = {}, movevec = {}, Norvec = {}, Dovec = {}, Hit = {};
 	int nCntStage;
 	float StageCross, PosCross;
@@ -410,6 +414,297 @@ bool CollisionStage(Stage** pStage)
 					Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
 					pPlayer->pos += Dovec * 1.001f;
 					pPlayer->move.y = 0.0f;
+				}
+			}
+
+			pDog = GetDog();
+			for (int nCntDog = 0; nCntDog < MAX_DOG; nCntDog++, pDog++)
+			{
+				if (pDog->bUse)
+				{
+					Stagevec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pDog->pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pDog->pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pPlayer->pos.y + pDog->aModel[1].pos.y + pDog->aModel[1].vtxMax.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//左
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Stagevec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pDog->pos += Dovec * 1.1f;
+						}
+					}
+
+					Stagevec = aPos[2] - aPos[1];//壁のベクトル
+					Posvec = pDog->pos - aPos[1];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[1];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pDog->pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pDog->pos.y + pDog->aModel[1].pos.y + pDog->aModel[1].vtxMax.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//手前
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[1] + Stagevec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pDog->pos += Dovec * 1.1f;
+						}
+					}
+
+					Stagevec = aPos[3] - aPos[2];//壁のベクトル
+					Posvec = pDog->pos - aPos[2];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[2];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pDog->pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pDog->pos.y + pDog->aModel[1].pos.y + pDog->aModel[1].vtxMax.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//右
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[2] + Stagevec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pDog->pos += Dovec * 1.1f;
+						}
+					}
+
+					Stagevec = aPos[0] - aPos[3];//壁のベクトル
+					Posvec = pDog->pos - aPos[3];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[3];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pDog->pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pDog->pos.y + pDog->aModel[1].pos.y + pDog->aModel[1].vtxMax.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//奥
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[3] + Stagevec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pDog->pos += Dovec * 1.1f;
+						}
+					}
+
+					Stagevec = aPos[5] - aPos[4];//壁のベクトル
+					Posvec = pDog->pos - aPos[4];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[4];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pDog->pos.z + pPlayer->aModel[1].pos.z + pDog->aModel[1].vtxMin.z < g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength && pDog->pos.z + pDog->aModel[1].pos.z + pDog->aModel[1].vtxMax.z > g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength)
+					{//上
+						StageCross = (Stagevec.x * movevec.y) - (Stagevec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[4] + Stagevec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.y, -Stagevec.x, Stagevec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pDog->pos += Dovec * 1.001f;
+							pDog->move.y = 0.0f;
+							bRanding = true;
+							if (pDog->motionType == MOTIONTYPE_JUMP)
+							{
+								pDog->motionType = MOTIONTYPE_LANDING;
+							}
+							if (pStage != NULL)
+							{
+								*pStage = &g_aStage[nCntStage];
+							}
+						}
+					}
+
+					Stagevec = aPos[7] - aPos[6];//壁のベクトル
+					Posvec = pDog->pos - aPos[6];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[6];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pDog->pos.z + pDog->aModel[1].pos.z + pDog->aModel[1].vtxMin.z < g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength && pDog->pos.z + pDog->aModel[1].pos.z + pDog->aModel[1].vtxMax.z > g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength)
+					{//下
+						StageCross = (Stagevec.x * movevec.y) - (Stagevec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[6] + Stagevec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.y, -Stagevec.x, Stagevec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pDog->pos += Dovec * 1.001f;
+							pDog->move.y = 0.0f;
+						}
+					}
+				}
+			}
+
+			pSnowBall = GetSnowBall();
+			for (int nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++, pSnowBall++)
+			{
+				if (pSnowBall->bUse)
+				{
+					D3DXVECTOR3 pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Stagevec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pos.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//左
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Stagevec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pSnowBall->pos += Dovec * 1.1f;
+						}
+					}
+
+					pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Stagevec = aPos[2] - aPos[1];//壁のベクトル
+					Posvec = pos - aPos[1];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[1];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pos.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//手前
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[1] + Stagevec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pSnowBall->pos += Dovec * 1.1f;
+						}
+					}
+
+					pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Stagevec = aPos[3] - aPos[2];//壁のベクトル
+					Posvec = pos - aPos[2];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[2];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pos.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//右
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[2] + Stagevec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pSnowBall->pos += Dovec * 1.1f;
+						}
+					}
+
+					pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Stagevec = aPos[0] - aPos[3];//壁のベクトル
+					Posvec = pos - aPos[3];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[3];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.z * Posvec.x) - (Stagevec.x * Posvec.z) <= 0.0f && (Stagevec.z * PosOldvec.x) - (Stagevec.x * PosOldvec.z) >= 0.0f && pos.y < g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMax.y && pos.y > g_aStage[nCntStage].pos.y + g_aStage[nCntStage].vtxMin.y)
+					{//奥
+						StageCross = (Stagevec.z * movevec.x) - (Stagevec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[3] + Stagevec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.z, Stagevec.y, -Stagevec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pSnowBall->pos += Dovec * 1.1f;
+						}
+					}
+
+					pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Stagevec = aPos[5] - aPos[4];//壁のベクトル
+					Posvec = pos - aPos[4];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[4];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pos.z < g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength && pDog->pos.z > g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength)
+					{//上
+						StageCross = (Stagevec.x * movevec.y) - (Stagevec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[4] + Stagevec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.y, -Stagevec.x, Stagevec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pSnowBall->pos += Dovec * 1.001f;
+							pSnowBall->move.y = 0.0f;
+						}
+					}
+
+					pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Stagevec = aPos[7] - aPos[6];//壁のベクトル
+					Posvec = pos - aPos[6];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[6];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Stagevec.x * Posvec.y) - (Stagevec.y * Posvec.x) <= 0.0f && (Stagevec.x * PosOldvec.y) - (Stagevec.y * PosOldvec.x) >= 0.0f && pos.z < g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * 0.5f) * g_aStage[nCntStage].fLength && pDog->pos.z > g_aStage[nCntStage].pos.z + cosf(g_aStage[nCntStage].rot.y + D3DX_PI * -0.5f) * g_aStage[nCntStage].fLength)
+					{//下
+						StageCross = (Stagevec.x * movevec.y) - (Stagevec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= StageCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[6] + Stagevec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Stagevec.y, -Stagevec.x, Stagevec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pSnowBall->pos += Dovec * 1.001f;
+							pSnowBall->move.y = 0.0f;
+						}
+					}
 				}
 			}
 		}

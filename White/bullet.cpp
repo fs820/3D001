@@ -13,8 +13,10 @@
 #include"particle.h"
 #include"wall.h"
 #include"meshwall.h"
+#include"meshfield.h"
 #include"stage.h"
 #include"sound.h"
+#include"hitshere.h"
 
 //グローバル変数宣言
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffBullet = NULL;//バッファのポインタ
@@ -147,6 +149,8 @@ void UpdateBullet(void)
 				PlaySound(SOUND_LABEL_EXPLOSION);
 			}
 			SetPositionShadow(g_aBullet[nCntBullet].nIdxShadow, g_aBullet[nCntBullet].pos, g_aBullet[nCntBullet].scale, BULLET_HEIGHT);
+
+			SetHitShere(g_aBullet[nCntBullet].pos, g_aBullet[nCntBullet].scale * BULLET_WIDTH * 0.5f*2.0f, 2, PLAYER);
 		}
 	}
 }
@@ -257,6 +261,7 @@ void CollisionWallB(void)
 {
 	Wall* pWall = GetWall();
 	MeshWall* pMeshWall = GetMeshWall();
+	MeshField* pMeshField = GetMeshField();
 	Stage* pStage = GetStage();
 	D3DXVECTOR3 aPos[4] = {}, Wallvec = {}, Posvec = {}, PosOldvec = {}, movevec = {}, Norvec = {}, Dovec = {}, Hit = {};
 	int nCntBullet, nCntWall;
@@ -276,16 +281,16 @@ void CollisionWallB(void)
 					Posvec = g_aBullet[nCntBullet].pos - aPos[0];//壁に対するプレイヤーのベクトル
 					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
 					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
-					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pWall->pos.y + WALL_HEIGHT && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pWall->pos.y && sqrtf(Wallvec.x * Wallvec.x + Wallvec.z * Wallvec.z) >= sqrtf(Posvec.x * Posvec.x + Posvec.z * Posvec.z))
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pWall->pos.y + WALL_HEIGHT && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pWall->pos.y)
 					{//壁の外側
 						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
 						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
 						PosCross /= WallCross;
 						if (PosCross >= -0.01f && PosCross < 1.01f)
 						{
+							aPos[0].y += g_aBullet[nCntBullet].posOld.y;
 							Hit = aPos[0] + Wallvec * PosCross;
 							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
-							movevec.y = 0;
 							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
 							D3DXVec3Normalize(&Norvec, &Norvec);
 							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
@@ -305,19 +310,48 @@ void CollisionWallB(void)
 					Posvec = g_aBullet[nCntBullet].pos - aPos[0];//壁に対するプレイヤーのベクトル
 					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
 					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
-					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pMeshWall->pos.y + WALL_HEIGHT * pMeshWall->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pMeshWall->pos.y && sqrtf(Wallvec.x * Wallvec.x + Wallvec.z * Wallvec.z) >= sqrtf(Posvec.x * Posvec.x + Posvec.z * Posvec.z))
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pMeshWall->pos.y + WALL_HEIGHT * pMeshWall->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pMeshWall->pos.y)
 					{//壁の外側
 						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
 						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
 						PosCross /= WallCross;
 						if (PosCross >= -0.01f && PosCross < 1.01f)
 						{
+							aPos[0].y += g_aBullet[nCntBullet].posOld.y;
 							Hit = aPos[0] + Wallvec * PosCross;
 							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
-							movevec.y = 0;
 							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
 							D3DXVec3Normalize(&Norvec, &Norvec);
 							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							g_aBullet[nCntBullet].dir = movevec + Dovec * 2.0f;
+						}
+					}
+				}
+			}
+			pMeshField = GetMeshField();
+			for (nCntWall = 0; nCntWall < MESHFIELD_MAX; nCntWall++, pMeshField++)
+			{//壁の数
+				if (pMeshField->bUse && !pMeshField->bAlpha)
+				{//使っている透明でない壁
+					aPos[0] = D3DXVECTOR3(pMeshField->pos.x + MESHFIELD_WIDTH * 0.5f * sinf(pMeshField->rot.z + D3DX_PI * -0.5f), pMeshField->pos.y + MESHFIELD_WIDTH * 0.5f * cosf(pMeshField->rot.z + D3DX_PI * 0.5f), pMeshField->pos.z);
+					aPos[1] = D3DXVECTOR3(pMeshField->pos.x + MESHFIELD_WIDTH * 0.5f * sinf(pMeshField->rot.z + D3DX_PI * 0.5f), pMeshField->pos.y + MESHFIELD_WIDTH * 0.5f * cosf(pMeshField->rot.z + D3DX_PI * -0.5f), pMeshField->pos.z);
+					Wallvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = g_aBullet[nCntBullet].pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
+					if ((Wallvec.x * Posvec.y) - (Wallvec.y * Posvec.x) < WALL_COLL_SPASE && (Wallvec.x * PosOldvec.y) - (Wallvec.y * PosOldvec.x) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.z - BULLET_WIDTH * 0.5f < pMeshField->pos.z + MESHFIELD_WIDTH * 0.5f && g_aBullet[nCntBullet].pos.z + BULLET_WIDTH * 0.5f > pMeshField->pos.z - MESHFIELD_WIDTH * 0.5f)
+					{//壁の外側
+						WallCross = (Wallvec.x * movevec.y) - (Wallvec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= WallCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							aPos[0].z += g_aBullet[nCntBullet].posOld.z;
+							Hit = aPos[0] + Wallvec * PosCross;
+							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Wallvec.y, -Wallvec.x, Wallvec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
 							g_aBullet[nCntBullet].dir = movevec + Dovec * 2.0f;
 						}
 					}
@@ -337,16 +371,16 @@ void CollisionWallB(void)
 					Posvec = g_aBullet[nCntBullet].pos - aPos[0];//壁に対するプレイヤーのベクトル
 					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
 					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
-					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y && sqrtf(Wallvec.x * Wallvec.x + Wallvec.z * Wallvec.z) >= sqrtf(Posvec.x * Posvec.x + Posvec.z * Posvec.z))
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y)
 					{//壁の外側
 						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
 						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
 						PosCross /= WallCross;
 						if (PosCross >= -0.01f && PosCross < 1.01f)
 						{
+							aPos[0].y += g_aBullet[nCntBullet].posOld.y;
 							Hit = aPos[0] + Wallvec * PosCross;
 							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
-							movevec.y = 0;
 							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
 							D3DXVec3Normalize(&Norvec, &Norvec);
 							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
@@ -358,16 +392,16 @@ void CollisionWallB(void)
 					Posvec = g_aBullet[nCntBullet].pos - aPos[1];//壁に対するプレイヤーのベクトル
 					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[1];//壁に対するプレイヤーの旧ベクトル
 					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
-					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y && sqrtf(Wallvec.x * Wallvec.x + Wallvec.z * Wallvec.z) >= sqrtf(Posvec.x * Posvec.x + Posvec.z * Posvec.z))
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y)
 					{//壁の外側
 						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
 						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
 						PosCross /= WallCross;
 						if (PosCross >= -0.01f && PosCross < 1.01f)
 						{
+							aPos[1].y += g_aBullet[nCntBullet].posOld.y;
 							Hit = aPos[1] + Wallvec * PosCross;
 							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
-							movevec.y = 0;
 							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
 							D3DXVec3Normalize(&Norvec, &Norvec);
 							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
@@ -379,16 +413,16 @@ void CollisionWallB(void)
 					Posvec = g_aBullet[nCntBullet].pos - aPos[2];//壁に対するプレイヤーのベクトル
 					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[2];//壁に対するプレイヤーの旧ベクトル
 					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
-					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y && sqrtf(Wallvec.x * Wallvec.x + Wallvec.z * Wallvec.z) >= sqrtf(Posvec.x * Posvec.x + Posvec.z * Posvec.z))
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y)
 					{//壁の外側
 						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
 						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
 						PosCross /= WallCross;
 						if (PosCross >= -0.01f && PosCross < 1.01f)
 						{
+							aPos[2].y += g_aBullet[nCntBullet].posOld.y;
 							Hit = aPos[2] + Wallvec * PosCross;
 							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
-							movevec.y = 0;
 							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
 							D3DXVec3Normalize(&Norvec, &Norvec);
 							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
@@ -400,16 +434,16 @@ void CollisionWallB(void)
 					Posvec = g_aBullet[nCntBullet].pos - aPos[3];//壁に対するプレイヤーのベクトル
 					PosOldvec = g_aBullet[nCntBullet].posOld - aPos[3];//壁に対するプレイヤーの旧ベクトル
 					movevec = g_aBullet[nCntBullet].pos - g_aBullet[nCntBullet].posOld;//プレイヤーの移動ベクトル
-					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y && sqrtf(Wallvec.x * Wallvec.x + Wallvec.z * Wallvec.z) >= sqrtf(Posvec.x * Posvec.x + Posvec.z * Posvec.z))
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) < WALL_COLL_SPASE && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= WALL_COLL_SPASE && g_aBullet[nCntBullet].pos.y - BULLET_HEIGHT * 0.5f < pStage->pos.y + pStage->vtxMax.y * pStage->scale.y && g_aBullet[nCntBullet].pos.y + BULLET_HEIGHT * 0.5f > pStage->pos.y + pStage->vtxMin.y)
 					{//壁の外側
 						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
 						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
 						PosCross /= WallCross;
 						if (PosCross >= -0.01f && PosCross < 1.01f)
 						{
+							aPos[3].y += g_aBullet[nCntBullet].posOld.y;
 							Hit = aPos[3] + Wallvec * PosCross;
 							movevec = g_aBullet[nCntBullet].pos - Hit;//プレイヤーの移動ベクトル
-							movevec.y = 0;
 							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
 							D3DXVec3Normalize(&Norvec, &Norvec);
 							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));

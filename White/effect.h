@@ -12,7 +12,7 @@
 
 #define EFFECT_TEX "data\\TEXTURE\\effect002.png"
 #define MAX_EFFECT (4096)//�ő吔
-#define EFFECT_SIZE_DEF (50.0f)
+#define EFFECT_SIZE_DEF (20.0f)
 
 typedef enum
 {

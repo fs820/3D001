@@ -8,11 +8,12 @@
 #include"sphere.h"
 #include"camera.h"
 #include"effect.h"
+#include"game.h"
 
 //グローバル変数宣言
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffSphere = NULL;//バッファのポインタ
 LPDIRECT3DINDEXBUFFER9 g_pIdxBuffSphere = NULL;//インデックスバッファのポインタ
-LPDIRECT3DTEXTURE9 g_pTextureSphere[2] = { NULL };
+LPDIRECT3DTEXTURE9 g_pTextureSphere[3] = { NULL };
 Sphere g_aSphere[SPHERE_MAX];
 
 //----------------------
@@ -52,6 +53,14 @@ void InitSphere(void)
 		&g_pTextureSphere[1]
 	);
 
+	//テクスチャの読み込み
+	D3DXCreateTextureFromFile
+	(
+		pDevice,
+		SPHERE_TEX3,
+		&g_pTextureSphere[2]
+	);
+
 	//インデックスバッファの生成
 	pDevice->CreateIndexBuffer
 	(
@@ -86,7 +95,7 @@ void InitSphere(void)
 
 	pVtx[0].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
 
-	for (nCntSphere = 0; nCntSphere < SPHERE_VNUM/* - 1*/; nCntSphere++)
+	for (nCntSphere = 0; nCntSphere < SPHERE_VNUM; nCntSphere++)
 	{//1枚分のZ軸のループ
 		for (nCntSphere2 = 0; nCntSphere2 < SPHERE_HNUM + 1; nCntSphere2++)
 		{//1枚分のX軸のループ
@@ -111,17 +120,6 @@ void InitSphere(void)
 		}
 	}
 
-	////極頂点
-	//pVtx[VT_MAX_SP - 1].pos = D3DXVECTOR3(0.0f, -SPHERE_RADIUS, 0.0f);
-
-	//npos = D3DXVECTOR3(0.0f, 0.0f, 0.0f), dpos = D3DXVECTOR3(0.0f, -SPHERE_RADIUS, 0.0f);
-	//D3DXVec3Normalize(&npos, &dpos);
-	//pVtx[VT_MAX_SP - 1].nor = npos;
-
-	//pVtx[VT_MAX_SP - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
-
-	//pVtx[VT_MAX_SP - 1].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)), (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
-
 	g_pVtxBuffSphere->Unlock();
 
 	WORD* pIdx;
@@ -132,7 +130,7 @@ void InitSphere(void)
 	{//FAN部分
 		pIdx[nCntSphere] = SPHERE_HNUM + 2 - nCntSphere;
 	}
-	for (nCntSphere = SPHERE_HNUM + 2; nCntSphere < INDEX_SP_NUM - (SPHERE_VNUM - 2) * 2/* - SPHERE_HNUM*/; nCntSphere++)
+	for (nCntSphere = SPHERE_HNUM + 2; nCntSphere < INDEX_SP_NUM - (SPHERE_VNUM - 2) * 2; nCntSphere++)
 	{//STRIP部分
 		if ((nCntSphere - (SPHERE_HNUM + 2)) % (((SPHERE_HNUM + 1) * 2)) == 0 && (nCntSphere - (SPHERE_HNUM + 2)) != 0)
 		{//縮退ポリゴン
@@ -146,12 +144,6 @@ void InitSphere(void)
 		//インデックス指定
 		pIdx[nCntSphere + (((nCntSphere - (SPHERE_HNUM + 2)) / ((SPHERE_HNUM + 1) * 2)) * 2)] = (SPHERE_HNUM + 1) - (SPHERE_HNUM + 1) * ((nCntSphere - (SPHERE_HNUM + 2)) % 2) + ((nCntSphere - (SPHERE_HNUM + 2)) / 2) + 1;
 	}
-
-	//for (nCntSphere2 = 1; nCntSphere2 < SPHERE_HNUM + 2; nCntSphere2++)
-	//{//FAN部分
-	//	pIdx[INDEX_SP_NUM - nCntSphere2] = VT_MAX_SP - (nCntSphere2 + 1);
-	//}
-	//pIdx[INDEX_SP_NUM - (SPHERE_HNUM + 2)] = VT_MAX_SP - 1;
 
 	g_pIdxBuffSphere->Unlock();
 }
@@ -198,7 +190,7 @@ void UpdateSphere(void)
 
 	pVtx[0].tex = D3DXVECTOR2((float)(((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI) / SPHERE_WIDTH_DEF) / SPHERE_HNUM)) + nCntTex, (float)((((SPHERE_RADIUS + SPHERE_RADIUS) * D3DX_PI * 0.5f) / SPHERE_HEIGHT_DEF) / SPHERE_VNUM));
 
-	for (nCntSphere = 0; nCntSphere < SPHERE_VNUM/* - 1*/; nCntSphere++)
+	for (nCntSphere = 0; nCntSphere < SPHERE_VNUM; nCntSphere++)
 	{//1枚分のZ軸のループ
 		for (nCntSphere2 = 0; nCntSphere2 < SPHERE_HNUM + 1; nCntSphere2++)
 		{//1枚分のX軸のループ
@@ -250,45 +242,64 @@ void DrawSphere(void)
 			//頂点フォーマットの設定
 			pDevice->SetFVF(FVF_VERTEX_3D);
 
-			//テクスチャの設定
-			pDevice->SetTexture(0, g_pTextureSphere[1]);
+			if (GetbSnow())
+			{
+				//テクスチャの設定
+				pDevice->SetTexture(0, g_pTextureSphere[2]);
 
-			//極ポリゴンの描画
-			pDevice->DrawIndexedPrimitive
-			(
-				D3DPT_TRIANGLEFAN,//タイプ
-				0,
-				0,
-				SPHERE_HNUM + 2,//頂点数
-				0,
-				SPHERE_HNUM//ポリゴンの個数
-			);
+				//極ポリゴンの描画
+				pDevice->DrawIndexedPrimitive
+				(
+					D3DPT_TRIANGLEFAN,//タイプ
+					0,
+					0,
+					SPHERE_HNUM + 2,//頂点数
+					0,
+					SPHERE_HNUM//ポリゴンの個数
+				);
 
-			pDevice->SetTexture(0, g_pTextureSphere[0]);
+				pDevice->SetTexture(0, g_pTextureSphere[2]);
 
-			//ポリゴンの描画
-			pDevice->DrawIndexedPrimitive
-			(
-				D3DPT_TRIANGLESTRIP,//タイプ
-				0,
-				0,
-				VT_MAX_SP - (SPHERE_HNUM + 2)/* * 2*/,//頂点数
-				SPHERE_HNUM + 2,
-				POLYGON_SP_NUM - SPHERE_HNUM/* * 2*///ポリゴンの個数
-			);
+				//ポリゴンの描画
+				pDevice->DrawIndexedPrimitive
+				(
+					D3DPT_TRIANGLESTRIP,//タイプ
+					0,
+					0,
+					VT_MAX_SP - (SPHERE_HNUM + 2),//頂点数
+					SPHERE_HNUM + 2,
+					POLYGON_SP_NUM - SPHERE_HNUM//ポリゴンの個数
+				);
+			}
+			else
+			{
+				//テクスチャの設定
+				pDevice->SetTexture(0, g_pTextureSphere[1]);
 
-			//pDevice->SetTexture(0, g_pTextureSphere[1]);
+				//極ポリゴンの描画
+				pDevice->DrawIndexedPrimitive
+				(
+					D3DPT_TRIANGLEFAN,//タイプ
+					0,
+					0,
+					SPHERE_HNUM + 2,//頂点数
+					0,
+					SPHERE_HNUM//ポリゴンの個数
+				);
 
-			////極ポリゴンの描画
-			//pDevice->DrawIndexedPrimitive
-			//(
-			//	D3DPT_TRIANGLEFAN,//タイプ
-			//	0,
-			//	0,
-			//	SPHERE_HNUM + 2,//頂点数
-			//	nCntSphere * INDEX_SP_NUM + INDEX_SP_NUM - (SPHERE_HNUM + 2),
-			//	SPHERE_HNUM//ポリゴンの個数
-			//);
+				pDevice->SetTexture(0, g_pTextureSphere[0]);
+
+				//ポリゴンの描画
+				pDevice->DrawIndexedPrimitive
+				(
+					D3DPT_TRIANGLESTRIP,//タイプ
+					0,
+					0,
+					VT_MAX_SP - (SPHERE_HNUM + 2),//頂点数
+					SPHERE_HNUM + 2,
+					POLYGON_SP_NUM - SPHERE_HNUM//ポリゴンの個数
+				);
+			}
 		}
 	}
 }

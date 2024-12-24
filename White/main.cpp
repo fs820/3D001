@@ -754,6 +754,13 @@ void DrawDebug(void)
 	rect.top += FONT_SIZE;
 
 	//文字列の代入
+	snprintf(&aStr[0], sizeof(aStr), "プレイヤー体力:%f\n", (float)((float)pPlayer->nLife / (float)PLAYER_LIFE));
+
+	//テキストの描画
+	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));
+	rect.top += FONT_SIZE;
+
+	//文字列の代入
 	snprintf(&aStr[0], sizeof(aStr), "プレイヤー状態:%d\n", pPlayer->state);
 
 	//テキストの描画
@@ -825,6 +832,13 @@ void DrawDebug(void)
 
 	//文字列の代入
 	snprintf(&aStr[0], sizeof(aStr), "モーションカウント:%d\n", pPlayer->nCounterMotion);
+
+	//テキストの描画
+	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));
+	rect.top += FONT_SIZE;
+
+	//文字列の代入
+	snprintf(&aStr[0], sizeof(aStr), "時間:%d\n", GetClearTime());
 
 	//テキストの描画
 	g_pFont->DrawText(NULL, &aStr[0], -1, &rect, DT_LEFT, D3DCOLOR_RGBA(255, 255, 255, 255));

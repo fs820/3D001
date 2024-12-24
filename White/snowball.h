@@ -19,6 +19,7 @@
 #define SNOWBALL_HNUM (64)//H分割数
 #define SNOWBALL_VNUM (64)//V分割数
 #define SNOWBALL_ANG (180.0f)//半球全球切替
+#define SNOWBALL_NUM (10)
 
 ////半球
 //#define VT_MAX_SP ((SPHERE_HNUM + 1) * SPHERE_VNUM+1)//横の頂点数*縦のライン数(極を抜かす)+極 (半球)
@@ -32,6 +33,8 @@
 typedef struct
 {
 	D3DXVECTOR3 pos;
+	D3DXVECTOR3 posOld;
+	D3DXVECTOR3 move;
 	D3DXVECTOR3 rot;
 	D3DXVECTOR3 scale;
 	D3DXMATRIX mtxWorld;
@@ -43,5 +46,7 @@ void UninitSnowBall(void);//終了処理
 void UpdateSnowBall(void);//更新処理
 void DrawSnowBall(void);//描画処理
 void SetSnowBall(D3DXVECTOR3 pos, D3DXVECTOR3 rot, D3DXVECTOR3 scale);//設定処理
+SnowBall* GetSnowBall(void);
+void CollisionSnowBall(D3DXVECTOR3 pos, float Length);
 
 #endif _SNOWBALL_H_

@@ -6,6 +6,9 @@
 //----------------------------------------
 
 #include"snowball.h"
+#include"hitshere.h"
+#include"game.h"
+#include"stage.h"
 
 //グローバル変数宣言
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffSnowBall = NULL;//バッファのポインタ
@@ -65,6 +68,8 @@ void InitSnowBall(void)
 	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
 	{
 		g_aSnowBall[nCntSnowBall].pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_aSnowBall[nCntSnowBall].posOld = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_aSnowBall[nCntSnowBall].move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_aSnowBall[nCntSnowBall].rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_aSnowBall[nCntSnowBall].scale = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_aSnowBall[nCntSnowBall].bUse = false;
@@ -81,7 +86,7 @@ void InitSnowBall(void)
 	D3DXVec3Normalize(&npos, &npos);
 	pVtx[0].nor = npos;
 
-	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
+	pVtx[0].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	pVtx[0].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM)), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM));
 
@@ -118,7 +123,7 @@ void InitSnowBall(void)
 	D3DXVec3Normalize(&npos, &npos);
 	pVtx[VT_MAX_SB - 1].nor = npos;
 
-	pVtx[VT_MAX_SB - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.8f);
+	pVtx[VT_MAX_SB - 1].col = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
 	pVtx[VT_MAX_SB - 1].tex = D3DXVECTOR2((float)(((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI) / SNOWBALL_WIDTH_DEF) / SNOWBALL_HNUM)), (float)((((SNOWBALL_RADIUS + SNOWBALL_RADIUS) * D3DX_PI * 0.5f) / SNOWBALL_HEIGHT_DEF) / SNOWBALL_VNUM));
 
@@ -201,7 +206,24 @@ void UpdateSnowBall(void)
 	int nCntSnowBall;
 	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
 	{
-		g_aSnowBall[nCntSnowBall].rot.z += 0.1f;
+		if (g_aSnowBall[nCntSnowBall].bUse)
+		{
+			g_aSnowBall[nCntSnowBall].rot.z += 0.1f;
+
+			g_aSnowBall[nCntSnowBall].move.y += GRAVITY;
+
+			g_aSnowBall[nCntSnowBall].posOld = g_aSnowBall[nCntSnowBall].pos;
+
+			g_aSnowBall[nCntSnowBall].pos += g_aSnowBall[nCntSnowBall].move;
+
+			CollisionStage(NULL);
+
+			//移動量の更新(減衰)
+			g_aSnowBall[nCntSnowBall].move.x += (0.0f - g_aSnowBall[nCntSnowBall].move.x) * 0.1f;
+			g_aSnowBall[nCntSnowBall].move.z += (0.0f - g_aSnowBall[nCntSnowBall].move.z) * 0.1f;
+
+			SetHitShere(g_aSnowBall[nCntSnowBall].pos, g_aSnowBall[nCntSnowBall].scale * SNOWBALL_RADIUS, 2, PLAYER);
+		}
 	}
 }
 
@@ -303,10 +325,44 @@ void SetSnowBall(D3DXVECTOR3 pos, D3DXVECTOR3 rot, D3DXVECTOR3 scale)
 		{//使用していない
 			//有効化
 			g_aSnowBall[nCntSnowBall].pos = pos;
+			g_aSnowBall[nCntSnowBall].move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			g_aSnowBall[nCntSnowBall].rot = rot;
 			g_aSnowBall[nCntSnowBall].scale = scale;
 			g_aSnowBall[nCntSnowBall].bUse = true;
 			break;
+		}
+	}
+}
+
+//----------------------------
+//取得
+//----------------------------
+SnowBall* GetSnowBall(void)
+{
+	return &g_aSnowBall[0];
+}
+
+//------------------------------------------------
+//衝突
+//------------------------------------------------
+void CollisionSnowBall(D3DXVECTOR3 pos, float Length)
+{
+	int nCntSnowBall;
+	for (nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++)
+	{//球の数
+		if (g_aSnowBall[nCntSnowBall].bUse)
+		{//使用していない
+			float Space = sqrtf((pos.x - g_aSnowBall[nCntSnowBall].pos.x) * (pos.x - g_aSnowBall[nCntSnowBall].pos.x) + (pos.y - g_aSnowBall[nCntSnowBall].pos.y) * (pos.y - g_aSnowBall[nCntSnowBall].pos.y) + (pos.z - g_aSnowBall[nCntSnowBall].pos.z) * (pos.z - g_aSnowBall[nCntSnowBall].pos.z));
+			if (Space < SNOWBALL_RADIUS * g_aSnowBall[nCntSnowBall].scale.x + Length * 0.5f)
+			{
+				Space = (SNOWBALL_RADIUS * g_aSnowBall[nCntSnowBall].scale.x + Length * 0.5f) - Space;
+				D3DXVECTOR3 Hitvec = g_aSnowBall[nCntSnowBall].pos - pos;
+				D3DXVec3Normalize(&Hitvec, &Hitvec);
+				g_aSnowBall[nCntSnowBall].move += Hitvec * Space;
+				g_aSnowBall[nCntSnowBall].scale.x += Space * 0.01f;
+				g_aSnowBall[nCntSnowBall].scale.y += Space * 0.01f;
+				g_aSnowBall[nCntSnowBall].scale.z += Space * 0.01f;
+			}
 		}
 	}
 }

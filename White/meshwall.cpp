@@ -7,6 +7,9 @@
 
 #include"meshwall.h"
 #include"player.h"
+#include"Dog.h"
+#include"Crow.h"
+#include"snowball.h"
 
 //グローバル変数宣言
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffMeshWall = NULL;//バッファのポインタ
@@ -140,7 +143,10 @@ void UninitMeshWall(void)
 //-------------------
 void UpdateMeshWall(void)
 {
-	CollisionMeshWall();
+	if (GetMode() == MODE_GAME)
+	{
+		CollisionMeshWall();
+	}
 }
 
 //-------------------
@@ -321,6 +327,9 @@ MeshWall* GetMeshWall(void)
 void CollisionMeshWall(void)
 {
 	Player* pPlayer = GetPlayer();
+	Dog* pDog = GetDog();
+	Crow* pCrow = GetCrow();
+	SnowBall* pSnowBall = GetSnowBall();
 	D3DXVECTOR3 aPos[2] = {}, Wallvec = {}, Posvec = {}, PosOldvec = {}, movevec = {}, Norvec = {}, Dovec = {}, Hit = {};
 	int nCntWall;
 	float WallCross, PosCross;
@@ -330,6 +339,7 @@ void CollisionMeshWall(void)
 		{//使っている透明でない壁
 			aPos[0] = D3DXVECTOR3(g_aMeshWall[nCntWall].pos.x + MESHWALL_WIDTH * 0.5f * g_aMeshWall[nCntWall].scale.x * sinf(g_aMeshWall[nCntWall].rot.y + D3DX_PI * -0.5f), g_aMeshWall[nCntWall].pos.y, g_aMeshWall[nCntWall].pos.z + MESHWALL_WIDTH * 0.5f * g_aMeshWall[nCntWall].scale.z * cosf(g_aMeshWall[nCntWall].rot.y + D3DX_PI * -0.5f));
 			aPos[1] = D3DXVECTOR3(g_aMeshWall[nCntWall].pos.x + MESHWALL_WIDTH * 0.5f * g_aMeshWall[nCntWall].scale.x * sinf(g_aMeshWall[nCntWall].rot.y + D3DX_PI * 0.5f), g_aMeshWall[nCntWall].pos.y, g_aMeshWall[nCntWall].pos.z + MESHWALL_WIDTH * 0.5f * g_aMeshWall[nCntWall].scale.z * cosf(g_aMeshWall[nCntWall].rot.y + D3DX_PI * 0.5f));
+
 			Wallvec = aPos[1] - aPos[0];//壁のベクトル
 			Posvec = pPlayer->pos - aPos[0];//壁に対するプレイヤーのベクトル
 			PosOldvec = pPlayer->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
@@ -347,6 +357,91 @@ void CollisionMeshWall(void)
 					D3DXVec3Normalize(&Norvec, &Norvec);
 					Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
 					pPlayer->pos += Dovec * 1.1f;
+				}
+			}
+
+			pDog = GetDog();
+			for (int nCntDog = 0; nCntDog < MAX_DOG; nCntDog++, pDog++)
+			{
+				if (pDog->bUse)
+				{
+					Wallvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pDog->pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) <= 0.0f && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= 0.0f && pDog->pos.y < g_aMeshWall[nCntWall].pos.y + MESHWALL_HEIGHT * g_aMeshWall[nCntWall].scale.y && pDog->pos.y + pDog->aModel[1].pos.y + pDog->aModel[1].vtxMax.y > g_aMeshWall[nCntWall].pos.y)
+					{//壁の外側
+						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= WallCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Wallvec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pDog->pos += Dovec * 1.1f;
+						}
+					}
+				}
+			}
+
+			pCrow = GetCrow();
+			for (int nCntCrow = 0; nCntCrow < MAX_CROW; nCntCrow++, pCrow++)
+			{
+				if (pCrow->bUse)
+				{
+					Wallvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pCrow->pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = pCrow->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pCrow->pos - pCrow->posOld;//プレイヤーの移動ベクトル
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) <= 0.0f && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= 0.0f && pCrow->pos.y < g_aMeshWall[nCntWall].pos.y + MESHWALL_HEIGHT * g_aMeshWall[nCntWall].scale.y && pCrow->pos.y + pCrow->aModel[1].pos.y + pCrow->aModel[1].vtxMax.y > g_aMeshWall[nCntWall].pos.y)
+					{//壁の外側
+						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= WallCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Wallvec * PosCross;
+							movevec = pCrow->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pCrow->pos += Dovec * 1.1f;
+						}
+					}
+				}
+			}
+
+			pSnowBall = GetSnowBall();
+			for (int nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++, pSnowBall++)
+			{
+				if (pSnowBall->bUse)
+				{
+					D3DXVECTOR3 pos = pSnowBall->pos, posOld = pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+
+					Wallvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec =posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Wallvec.z * Posvec.x) - (Wallvec.x * Posvec.z) <= 0.0f && (Wallvec.z * PosOldvec.x) - (Wallvec.x * PosOldvec.z) >= 0.0f && pCrow->pos.y < g_aMeshWall[nCntWall].pos.y + MESHWALL_HEIGHT * g_aMeshWall[nCntWall].scale.y && pCrow->pos.y > g_aMeshWall[nCntWall].pos.y)
+					{//壁の外側
+						WallCross = (Wallvec.z * movevec.x) - (Wallvec.x * movevec.z);
+						PosCross = (Posvec.z * movevec.x) - (Posvec.x * movevec.z);
+						PosCross /= WallCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Wallvec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Wallvec.z, Wallvec.y, -Wallvec.x);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.z * Norvec.z));
+							pSnowBall->pos += Dovec * 1.1f;
+						}
+					}
 				}
 			}
 		}

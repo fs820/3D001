@@ -78,12 +78,17 @@ void InitResult(void)
 
 
 	//スコアの取得
-	nScore = GetScore();
-	for (int i = 0; i < SCORE_MAX; i++)
+	nScore = GetClearTime();
+	for (int i = 0; i < 2; i++)
 	{
 		aPosTexUr[i] = Digit(nScore, i);
 	}
-	posScore = D3DXVECTOR3(SCREEN_WIDTH / 2 - (SCORE_WIDTH / U_MAX_S) * (SCORE_MAX / 2), SCREEN_HEIGHT / 2, 0.0f);
+	aPosTexUr[2] = 10;
+	for (int i = 3; i < 5; i++)
+	{
+		aPosTexUr[i] = Digit(nScore, i - 1);
+	}
+	posScore = D3DXVECTOR3(SCREEN_WIDTH / 2 - (SCORE_WIDTH / SCORE_MAX) * (SCORE_MAX / 2), SCREEN_HEIGHT / 2, 0.0f);
 
 	//空間
 	SetMeshField(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f));
@@ -102,10 +107,10 @@ void InitResult(void)
 	for (int i = 0; i < SCORE_MAX; i++)
 	{
 		//座標設定
-		pVtx[0].pos = D3DXVECTOR3(posScore.x - (SCORE_WIDTH / U_MAX_S) / 2, posScore.y - (SCORE_HEIGHT / V_MAX_S) / 2, posScore.z);
-		pVtx[1].pos = D3DXVECTOR3(posScore.x + (SCORE_WIDTH / U_MAX_S) / 2, posScore.y - (SCORE_HEIGHT / V_MAX_S) / 2, posScore.z);
-		pVtx[2].pos = D3DXVECTOR3(posScore.x - (SCORE_WIDTH / U_MAX_S) / 2, posScore.y + (SCORE_HEIGHT / V_MAX_S) / 2, posScore.z);
-		pVtx[3].pos = D3DXVECTOR3(posScore.x + (SCORE_WIDTH / U_MAX_S) / 2, posScore.y + (SCORE_HEIGHT / V_MAX_S) / 2, posScore.z);
+		pVtx[0].pos = D3DXVECTOR3(posScore.x - (SCORE_WIDTH / SCORE_MAX) / 2, posScore.y - SCORE_HEIGHT / 2, posScore.z);
+		pVtx[1].pos = D3DXVECTOR3(posScore.x + (SCORE_WIDTH / SCORE_MAX) / 2, posScore.y - SCORE_HEIGHT / 2, posScore.z);
+		pVtx[2].pos = D3DXVECTOR3(posScore.x - (SCORE_WIDTH / SCORE_MAX) / 2, posScore.y + SCORE_HEIGHT / 2, posScore.z);
+		pVtx[3].pos = D3DXVECTOR3(posScore.x + (SCORE_WIDTH / SCORE_MAX) / 2, posScore.y + SCORE_HEIGHT / 2, posScore.z);
 
 		//rhw
 		pVtx[0].rhw = 1.0f;
@@ -125,7 +130,7 @@ void InitResult(void)
 		pVtx[2].tex = D3DXVECTOR2(UV_DEF / U_MAX_S * aPosTexUr[i], UV_DEF / V_MAX_S * (aPosTexUr[i] / U_MAX_S) + UV_DEF / V_MAX_S);
 		pVtx[3].tex = D3DXVECTOR2(UV_DEF / U_MAX_S * aPosTexUr[i] + UV_DEF / U_MAX_S, UV_DEF / V_MAX_S * (aPosTexUr[i] / U_MAX_S) + UV_DEF / V_MAX_S);
 
-		posScore.x += SCORE_WIDTH / U_MAX_S;
+		posScore.x += SCORE_WIDTH / SCORE_MAX;
 		pVtx += VT_MAX;
 	}
 

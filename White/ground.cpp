@@ -52,7 +52,6 @@ void InitGround(void)
 	}
 	//1‚Â–Ú
 
-
 	g_pVtxBuffGround->Lock(0,0,(void**)&pVtx,0);
 
 	//À•Wİ’è

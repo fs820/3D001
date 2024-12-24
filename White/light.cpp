@@ -8,6 +8,7 @@
 #include"main.h"
 #include"light.h"
 #include"input.h"
+#include"game.h"
 
 //グローバル変数宣言
 D3DLIGHT9 g_light[LIGHT_MAX];
@@ -303,6 +304,15 @@ void UpdateLight(void)
 	//セット
 	pDevice->SetLight(0, &g_light[0]);
 
+	//ディレクショナル夜化
+	int Time=GetTime();
+	g_light[0].Diffuse = D3DXCOLOR(1.0f - (float)((float)Time / (float)TIME_LIMIT) + (((float)Time / (float)TIME_LIMIT) < 0.6f && ((float)Time / (float)TIME_LIMIT) > 0.5f) * 0.2f, 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT));
+	g_light[1].Diffuse = D3DXCOLOR(1.0f - (float)((float)Time / (float)TIME_LIMIT) + (((float)Time / (float)TIME_LIMIT) < 0.6f && ((float)Time / (float)TIME_LIMIT) > 0.5f) * 0.2f, 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT));
+	g_light[2].Diffuse = D3DXCOLOR(1.0f - (float)((float)Time / (float)TIME_LIMIT) + (((float)Time / (float)TIME_LIMIT) < 0.6f && ((float)Time / (float)TIME_LIMIT) > 0.5f) * 0.2f, 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT));
+	g_light[3].Diffuse = D3DXCOLOR(1.0f - (float)((float)Time / (float)TIME_LIMIT) + (((float)Time / (float)TIME_LIMIT) < 0.6f && ((float)Time / (float)TIME_LIMIT) > 0.5f) * 0.2f, 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT));
+	g_light[8].Diffuse = D3DXCOLOR(1.0f - (float)((float)Time / (float)TIME_LIMIT) + (((float)Time / (float)TIME_LIMIT) < 0.6f && ((float)Time / (float)TIME_LIMIT) > 0.5f) * 0.2f, 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT));
+	g_light[9].Diffuse = D3DXCOLOR(1.0f - (float)((float)Time / (float)TIME_LIMIT) + (((float)Time / (float)TIME_LIMIT) < 0.6f && ((float)Time / (float)TIME_LIMIT) > 0.5f) * 0.2f, 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT), 1.0f - (float)((float)Time / (float)TIME_LIMIT));
+
 	static int nCnt = 0;
 	if (nCnt % 60 == 0)
 	{
@@ -317,6 +327,11 @@ void UpdateLight(void)
 		pDevice->SetLight(9, &g_light[9]);
 	}
 	nCnt++;
+
+	for (int nCnt = 0; nCnt < 10; nCnt++)
+	{
+		pDevice->SetLight(nCnt, &g_light[nCnt]);
+	}
 }
 
 //--------------------------

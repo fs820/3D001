@@ -8,6 +8,8 @@
 #include"game.h"
 #include"input.h"
 #include"player.h"
+#include"Dog.h"
+#include"Crow.h"
 #include"ground.h"
 #include"wall.h"
 #include"bullet.h"
@@ -21,6 +23,10 @@
 #include"sound.h"
 #include"score.h"
 #include"camera.h"
+#include"life.h"
+#include"hitshere.h"
+#include"snow.h"
+#include"ui.h"
 
 #include"shadow.h"
 #include"billboard.h"
@@ -37,6 +43,7 @@
 GAMESTATE g_gameState = GAMESTATE_NONE;
 int g_nCounterGameState = 0;
 int g_GameTime = 0;
+bool g_bSnow = false;
 bool g_bClear = false;
 //--------------------
 //初期化処理
@@ -45,6 +52,7 @@ void InitGame(void)
 {
 	InitModel();
 	InitShadow();
+	InitLife();
 	InitStage();
 	InitMeshField();
 	InitLine();
@@ -53,23 +61,23 @@ void InitGame(void)
 	InitSnowBall();
 	InitMeshWall();
 	InitPlayer();//プレイヤー
+	InitDog();
+	InitCrow();
 	InitBullet();
 	InitEffect();
 	InitParticle();
+	InitSnow();
 	InitBillboard();
 	InitTime();
-	InitScore();
+	InitUi();
+	InitHitShere();
 
 	//空間
 	SetMeshField(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 	SetCylinder(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 	SetSphere(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f));
-	//石
-	SetSnowBall(D3DXVECTOR3(0.0f, SNOWBALL_RADIUS, 1500.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 	//ステージ
-	LoadStage();
-
-	SetScore(0, true);
+	LoadStage();	
 
 	//カメラ
 	GameCamera();
@@ -78,9 +86,12 @@ void InitGame(void)
 	g_gameState = GAMESTATE_NORMAL;
 	g_nCounterGameState = 0;
 	g_GameTime = 0;
+	g_bSnow = false;
 	g_bClear = false;
 
 	PlaySound(SOUND_LABEL_BGM);
+
+	SetUi(0);
 }
 
 //------------------
@@ -91,8 +102,10 @@ void UninitGame(void)
 	g_gameState = GAMESTATE_NONE;
 	EndSound();
 
-	UninitScore();
+	UninitHitShere();
+	UninitUi();
 	UninitTime();
+	UninitSnow();
 	UninitParticle();
 	UninitEffect();
 	UninitExplosion();
@@ -106,8 +119,11 @@ void UninitGame(void)
 	UninitLine();
 	UninitGround();
 	UninitMeshField();
+	UninitCrow();
+	UninitDog();
 	UninitPlayer();//プレイヤー
 	UninitStage();
+	UninitLife();
 	UninitShadow();
 	UninitModel();
 }
@@ -117,53 +133,53 @@ void UninitGame(void)
 //--------------
 void UpdateGame(void)
 {
-	if (GetKeyboradTrigger(DIK_RETURN) == true || GetJoykeyTrigger(JOYKEY_A, CONTROLLER_MAX) == true || GetJoykeyTrigger(JOYKEY_START, CONTROLLER_MAX) == true || GetMouseTrigger(MOUSE_SENTER) == true)
+	if (GetKeyboradTrigger(DIK_P) == true || GetJoykeyTrigger(JOYKEY_START, CONTROLLER_MAX) == true || GetMouseTrigger(MOUSE_SENTER) == true)
 	{
 		FADE fade;
 		fade = GetFade();
 		if (fade == FADE_NONE)
 		{
-			Pause();
+			Pause(SOUND_LABEL_BGM);
 		}
 	}
 	for (int i = 0; i < ControllerNum(CONTYPE_D); i++)
 	{
 		if (!strcmp(ControllerName((CONTROLLER)i), ELE_CON))
 		{
-			if (GetdJoykeyTrigger(ELEKEY_A, (CONTROLLER)i) || GetdJoykeyTrigger(ELEKEY_START, (CONTROLLER)i))
+			if (GetdJoykeyTrigger(ELEKEY_START, (CONTROLLER)i))
 			{
-				Pause();
+				Pause(SOUND_LABEL_BGM);
 			}
 		}
 		else if (!strcmp(ControllerName((CONTROLLER)i), PS_CON))
 		{
-			if (GetdJoykeyTrigger(PSKEY_CI, (CONTROLLER)i) || GetdJoykeyTrigger(PSKEY_START, (CONTROLLER)i))
+			if (GetdJoykeyTrigger(PSKEY_START, (CONTROLLER)i))
 			{
 				FADE fade;
 				fade = GetFade();
 				if (fade == FADE_NONE)
 				{
-					Pause();
+					Pause(SOUND_LABEL_BGM);
 				}
 			}
 		}
 		else if (!strcmp(ControllerName((CONTROLLER)i), NIN_CON))
 		{
-			if (GetdJoykeyTrigger(NINKEY_A, (CONTROLLER)i) || GetdJoykeyTrigger(NINKEY_＋, (CONTROLLER)i))
+			if (GetdJoykeyTrigger(NINKEY_＋, (CONTROLLER)i))
 			{
 				FADE fade;
 				fade = GetFade();
 				if (fade == FADE_NONE)
 				{
-					Pause();
+					Pause(SOUND_LABEL_BGM);
 				}
 			}
 		}
 		else if (!IsXInputControllerConnected((CONTROLLER)i) && IsDirectInputControllerConnected((CONTROLLER)i))
 		{
-			if (GetdJoykeyTrigger(DKEY_A, (CONTROLLER)i) || GetdJoykeyTrigger(DKEY_START, (CONTROLLER)i))
+			if (GetdJoykeyTrigger(DKEY_START, (CONTROLLER)i))
 			{
-				Pause();
+				Pause(SOUND_LABEL_BGM);
 			}
 		}
 	}
@@ -189,6 +205,34 @@ void UpdateGame(void)
 				g_gameState = GAMESTATE_END;
 				g_bClear = false;
 			}
+			if ((g_GameTime / FRAME) % (int)(TIME_LIMIT * 0.1f) == 0 && (g_GameTime % FRAME) == 0)
+			{
+				float RotRand = (((float)(rand() % 201) / 100.0f) - 1.0f) * D3DX_PI, LengthRand = (float)(rand() % 30001)/10.0f;
+				SetDog(D3DXVECTOR3(sinf(RotRand) * LengthRand, 0.0f, cosf(RotRand) * LengthRand));
+			}
+			if ((g_GameTime / FRAME) % (int)(TIME_LIMIT * 0.2f) == 0 && (g_GameTime % FRAME) == 0 && (float)(g_GameTime / FRAME) / (float)TIME_LIMIT >= 0.5f)
+			{
+				float RotRand = (((float)(rand() % 201) / 100.0f) - 1.0f) * D3DX_PI, LengthRand = (float)(rand() % 30001) / 10.0f;
+				SetCrow(D3DXVECTOR3(sinf(RotRand) * LengthRand, 0.0f, cosf(RotRand) * LengthRand));
+			}
+			if ((g_GameTime / FRAME) == TIME_LIMIT * 0.5f && (g_GameTime % FRAME) == 0)
+			{
+				SetSnow(D3DXVECTOR3(0.0f, 1000.0f, 0.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+			}
+			if ((g_GameTime / FRAME) % (int)(TIME_LIMIT * 0.6f) == 0 && (g_GameTime % FRAME) == 0)
+			{
+				g_bSnow = true;
+				for (int nCnt = 0; nCnt < SNOWBALL_NUM; nCnt++)
+				{
+					float RotRand = (((float)(rand() % 201) / 100.0f) - 1.0f) * D3DX_PI, LengthRand = (float)(rand() % 30001) / 10.0f;
+					SetSnowBall(D3DXVECTOR3(D3DXVECTOR3(sinf(RotRand) * LengthRand, SNOWBALL_RADIUS, cosf(RotRand) * LengthRand)), D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+				}
+				SetUi(2);
+			}
+			if ((g_GameTime / FRAME) % (int)(TIME_LIMIT * 0.75f) == 0 && (g_GameTime % FRAME) == 0)
+			{
+				SetSnow(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+			}
 			break;
 		case GAMESTATE_END:
 			g_nCounterGameState++;
@@ -209,9 +253,13 @@ void UpdateGame(void)
 
 		UpdateModel();
 		UpdateShadow();
+		UpdateLife();
 		UpdateStage();
 		UpdateGround();
 		UpdatePlayer();//プレイヤー
+		UpdateDog();
+		UpdateCrow();
+		UpdateHitShere();
 		UpdateWall();
 		UpdateMeshWall();
 		UpdateMeshField();
@@ -224,8 +272,8 @@ void UpdateGame(void)
 		UpdateExplosion();
 		UpdateEffect();
 		UpdateParticle();
-		UpdateScore();
-		AddScore((int)(10000.0f * ((float)(rand() % 101) / 100.0f)));
+		UpdateSnow();
+		UpdateUi();
 	}
 }
 
@@ -250,10 +298,14 @@ void DrawGame(void)
 	DrawExplosion();
 	DrawSnowBall();
 	DrawPlayer();//プレイヤー
+	DrawDog();
+	DrawCrow();
+	DrawHitShere();
 	DrawAlphaWall();
 	DrawAlphaMeshWall();
+	DrawLife();
 	DrawTime();
-	DrawScore();
+	DrawUi();
 }
 
 //----------------------
@@ -273,10 +325,44 @@ GAMESTATE GetGameState(void)
 	return g_gameState;
 }
 
+//-----------------------
+//スノー取得
+//-----------------------
+bool GetbSnow(void)
+{
+	return g_bSnow;
+}
+
 //---------------------
 //クリア取得
 //---------------------
 bool GetClear(void)
 {
 	return g_bClear;
+}
+
+//---------------------
+//クリア取得
+//---------------------
+int GetClearTime(void)
+{
+	int H = (((g_GameTime / FRAME) * (int)(HOUR * ((float)MINUTE / (float)TIME_LIMIT))) / MINUTE) * 100;
+	int M = ((g_GameTime / FRAME) * (int)(HOUR * ((float)MINUTE / (float)TIME_LIMIT))) % MINUTE;
+	return H + M;
+}
+
+//---------------------
+//クリア取得
+//---------------------
+int GetTime(void)
+{
+	return g_GameTime / FRAME;
+}
+
+//---------------------
+//時間初期化
+//---------------------
+void TimeReset(void)
+{
+	g_GameTime = 0;
 }

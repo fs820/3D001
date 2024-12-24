@@ -39,8 +39,10 @@
 #define SCALE_MIN (0.5f)
 #define SCALE_MAX (10.0f)
 #define START_Z (-1500.0f)
-#define PLAYER_LIFE (300)
+#define START_X (-100.0f)
+#define PLAYER_LIFE (1000)
 #define BLEND_FRAME (10.0f)
+#define PLAYER_SIZE (50.0f)
 
 //プレイヤー状態の列挙型定義
 typedef enum
@@ -102,6 +104,7 @@ typedef struct
 	PLAYERSTATE state;
 	D3DXMATRIX mtxWorld;
 	int nIdxShadow;
+	int nIdxLife;
 	Model aModel[MAX_MODEL];
 	int nNumModel;
 	MOTION_INFO aMotionInfo[MAX_MOTION];
@@ -122,5 +125,6 @@ void DrawPlayer(void);//ポリゴンの描画処理
 Player* GetPlayer(void);
 
 void UpdateMotion(void);
+void CollisionPlayer(D3DXVECTOR3 pos, float Length);
 
 #endif _PLAYER_H_

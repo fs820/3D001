@@ -148,13 +148,16 @@
     <ClInclude Include="billboard.h" />
     <ClInclude Include="bullet.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="Crow.h" />
     <ClInclude Include="cursor.h" />
     <ClInclude Include="cylinder.h" />
+    <ClInclude Include="Dog.h" />
     <ClInclude Include="fade.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="effect.h" />
     <ClInclude Include="explosion.h" />
     <ClInclude Include="hitshere.h" />
+    <ClInclude Include="life.h" />
     <ClInclude Include="line.h" />
     <ClInclude Include="meshwall.h" />
     <ClInclude Include="model.h" />
@@ -163,6 +166,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="score.h" />
+    <ClInclude Include="snow.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="stage.h" />
@@ -178,19 +182,23 @@
     <ClInclude Include="snowball.h" />
     <ClInclude Include="time.h" />
     <ClInclude Include="title.h" />
+    <ClInclude Include="ui.h" />
     <ClInclude Include="wall.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="billboard.cpp" />
     <ClCompile Include="bullet.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="Crow.cpp" />
     <ClCompile Include="cursor.cpp" />
     <ClCompile Include="cylinder.cpp" />
+    <ClCompile Include="Dog.cpp" />
     <ClCompile Include="fade.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="effect.cpp" />
     <ClCompile Include="explosion.cpp" />
     <ClCompile Include="hitshere.cpp" />
+    <ClCompile Include="life.cpp" />
     <ClCompile Include="line.cpp" />
     <ClCompile Include="meshwall.cpp" />
     <ClCompile Include="model.cpp" />
@@ -198,6 +206,7 @@
     <ClCompile Include="rank.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="score.cpp" />
+    <ClCompile Include="snow.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="stage.cpp" />
@@ -213,6 +222,7 @@
     <ClCompile Include="snowball.cpp" />
     <ClCompile Include="time.cpp" />
     <ClCompile Include="title.cpp" />
+    <ClCompile Include="ui.cpp" />
     <ClCompile Include="wall.cpp" />
   </ItemGroup>
   <ItemGroup>

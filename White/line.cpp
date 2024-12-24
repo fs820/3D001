@@ -7,6 +7,7 @@
 
 #include"line.h"
 #include"player.h"
+#include"ui.h"
 
 //グローバル変数宣言
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffLine = NULL;//バッファのポインタ
@@ -64,7 +65,6 @@ void InitLine(void)
 		g_aLine[nCntLine].bUse = false;
 	}
 	//1つ目
-
 
 	g_pVtxBuffLine->Lock(0, 0, (void**)&pVtx, 0);
 
@@ -138,7 +138,10 @@ void UninitLine(void)
 //-------------------
 void UpdateLine(void)
 {
-	HitLine();
+	if (!GetbSnow())
+	{
+		HitLine();
+	}
 }
 
 //-------------------
@@ -146,57 +149,60 @@ void UpdateLine(void)
 //-------------------
 void DrawLine(void)
 {
-	LPDIRECT3DDEVICE9 pDevice;//デバイスへポインタ
-	D3DXMATRIX mtxScale, mtxRot, mtxTrans;//計算マトリックス
-
-	//デバイスの取得
-	pDevice = GetDevice();
-
-	int nCntLine;
-	for (nCntLine = 0; nCntLine < LINE_MAX; nCntLine++)
+	if (!GetbSnow())
 	{
-		if (g_aLine[nCntLine].bUse)
+		LPDIRECT3DDEVICE9 pDevice;//デバイスへポインタ
+		D3DXMATRIX mtxScale, mtxRot, mtxTrans;//計算マトリックス
+
+		//デバイスの取得
+		pDevice = GetDevice();
+
+		int nCntLine;
+		for (nCntLine = 0; nCntLine < LINE_MAX; nCntLine++)
 		{
-			//マトリックス初期化
-			D3DXMatrixIdentity(&g_aLine[nCntLine].mtxWorld);
+			if (g_aLine[nCntLine].bUse)
+			{
+				//マトリックス初期化
+				D3DXMatrixIdentity(&g_aLine[nCntLine].mtxWorld);
 
-			//大きさの反映
-			D3DXMatrixScaling(&mtxScale, g_aLine[nCntLine].scale.x, g_aLine[nCntLine].scale.y, g_aLine[nCntLine].scale.z);
-			D3DXMatrixMultiply(&g_aLine[nCntLine].mtxWorld, &g_aLine[nCntLine].mtxWorld, &mtxScale);
+				//大きさの反映
+				D3DXMatrixScaling(&mtxScale, g_aLine[nCntLine].scale.x, g_aLine[nCntLine].scale.y, g_aLine[nCntLine].scale.z);
+				D3DXMatrixMultiply(&g_aLine[nCntLine].mtxWorld, &g_aLine[nCntLine].mtxWorld, &mtxScale);
 
-			//向きの反映
-			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_aLine[nCntLine].rot.y, g_aLine[nCntLine].rot.x, g_aLine[nCntLine].rot.z);
-			D3DXMatrixMultiply(&g_aLine[nCntLine].mtxWorld, &g_aLine[nCntLine].mtxWorld, &mtxRot);
+				//向きの反映
+				D3DXMatrixRotationYawPitchRoll(&mtxRot, g_aLine[nCntLine].rot.y, g_aLine[nCntLine].rot.x, g_aLine[nCntLine].rot.z);
+				D3DXMatrixMultiply(&g_aLine[nCntLine].mtxWorld, &g_aLine[nCntLine].mtxWorld, &mtxRot);
 
-			//位置の計算
-			D3DXMatrixTranslation(&mtxTrans, g_aLine[nCntLine].pos.x, g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z);
-			D3DXMatrixMultiply(&g_aLine[nCntLine].mtxWorld, &g_aLine[nCntLine].mtxWorld, &mtxTrans);
+				//位置の計算
+				D3DXMatrixTranslation(&mtxTrans, g_aLine[nCntLine].pos.x, g_aLine[nCntLine].pos.y, g_aLine[nCntLine].pos.z);
+				D3DXMatrixMultiply(&g_aLine[nCntLine].mtxWorld, &g_aLine[nCntLine].mtxWorld, &mtxTrans);
 
-			//ワールドマトリックスの設定
-			pDevice->SetTransform(D3DTS_WORLD, &g_aLine[nCntLine].mtxWorld);
+				//ワールドマトリックスの設定
+				pDevice->SetTransform(D3DTS_WORLD, &g_aLine[nCntLine].mtxWorld);
 
-			//頂点バッファ
-			pDevice->SetStreamSource(0, g_pVtxBuffLine, 0, sizeof(VERTEX_3D));
+				//頂点バッファ
+				pDevice->SetStreamSource(0, g_pVtxBuffLine, 0, sizeof(VERTEX_3D));
 
-			//インデックスバッファをデータストリームに設定
-			pDevice->SetIndices(g_pIdxBuffLine);
+				//インデックスバッファをデータストリームに設定
+				pDevice->SetIndices(g_pIdxBuffLine);
 
-			//頂点フォーマットの設定
-			pDevice->SetFVF(FVF_VERTEX_3D);
+				//頂点フォーマットの設定
+				pDevice->SetFVF(FVF_VERTEX_3D);
 
-			//テクスチャの設定
-			pDevice->SetTexture(0, g_pTextureLine);
+				//テクスチャの設定
+				pDevice->SetTexture(0, g_pTextureLine);
 
-			//ポリゴンの描画
-			pDevice->DrawIndexedPrimitive
-			(
-				D3DPT_TRIANGLESTRIP,//タイプ
-				0,
-				0,
-				VT_MAX_LINE,//頂点数
-				0,
-				POLYGON_NUM_LINE//ポリゴンの個数
-			);
+				//ポリゴンの描画
+				pDevice->DrawIndexedPrimitive
+				(
+					D3DPT_TRIANGLESTRIP,//タイプ
+					0,
+					0,
+					VT_MAX_LINE,//頂点数
+					0,
+					POLYGON_NUM_LINE//ポリゴンの個数
+				);
+			}
 		}
 	}
 }
@@ -267,5 +273,6 @@ void HitLine(void)
 	if (!OnLine && !pPlayer->bJump)
 	{
 		pPlayer->nLife--;
+		SetUi(1);
 	}
 }

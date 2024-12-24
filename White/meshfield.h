@@ -12,7 +12,9 @@
 #include"game.h"
 
 #define MESHFIELD_TEX "data\\TEXTURE\\field000.jpg"
+#define MESHFIELD_TEX2 "data\\TEXTURE\\yuki002.png"
 #define MESHFIELD_MAX (64)
+#define MESHFIELD_TEX_MAX (2)
 #define MESHFIELD_WIDTH (10000.0f)
 #define MESHFIELD_HEIGHT (0.0f)
 #define MESHFIELD_Z (10000.0f)
@@ -43,6 +45,7 @@ void UninitMeshField(void);//ポリゴンの終了処理
 void UpdateMeshField(void);//ポリゴンの更新処理
 void DrawMeshField(void);//ポリゴンの描画処理
 void SetMeshField(D3DXVECTOR3 pos, D3DXVECTOR3 rot);
+MeshField* GetMeshField(void);
 void CollisionMeshField(void);
 
 #endif _MESHFIELD_H_

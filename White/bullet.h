@@ -12,8 +12,8 @@
 
 #define BULLET_TEX "data\\TEXTURE\\bullet000.png"
 #define BULLET_MAX (256)
-#define BULLET_WIDTH (50.0f)
-#define BULLET_HEIGHT (50.0f)
+#define BULLET_WIDTH (20.0f)
+#define BULLET_HEIGHT (20.0f)
 #define BULLET_SPEED (10.0f)
 #define BULEET_LIFE (600)
 

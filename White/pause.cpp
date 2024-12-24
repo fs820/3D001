@@ -28,6 +28,7 @@ typedef enum
 LPDIRECT3DTEXTURE9 g_apTexturePause[SELECT_MAX] = { NULL };//テクスチャのポインタ
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffPause = NULL;//バッファのポインタ
 SELECT g_SelectNew = SELECT_RESTART;
+SOUND_LABEL g_Sound;
 bool g_bPause = false;
 
 //--------------------
@@ -121,8 +122,6 @@ void InitPause(void)
 	}
 
 	g_pVtxBuffPause->Unlock();//プレイヤーバッファのアンロック
-
-	PlaySound(SOUND_LABEL_BGM);
 }
 
 //------------------
@@ -172,7 +171,7 @@ void UpdatePause(void)
 		if (GetKeyboradTrigger(DIK_BACK) == true || GetJoykeyTrigger(JOYKEY_B, CONTROLLER_MAX) == true || GetMouseTrigger(MOUSE_RIGHT) == true)
 		{
 			SetGameState(GAMESTATE_NORMAL);
-			PlaySound(SOUND_LABEL_BGM4);
+			PlaySound(g_Sound);
 			g_bPause = !g_bPause;
 		}
 		else if (GetKeyboradTrigger(DIK_RETURN) == true || GetJoykeyTrigger(JOYKEY_A, CONTROLLER_MAX) == true || GetMouseTrigger(MOUSE_SENTER) == true)
@@ -182,7 +181,7 @@ void UpdatePause(void)
 			{
 			case SELECT_RESTART:
 				SetGameState(GAMESTATE_NORMAL);
-				PlaySound(SOUND_LABEL_BGM4);
+				PlaySound(g_Sound);
 				g_bPause = !g_bPause;
 				break;
 			case SELECT_RETRY:
@@ -238,7 +237,7 @@ void UpdatePause(void)
 					{
 					case SELECT_RESTART:
 						SetGameState(GAMESTATE_NORMAL);
-						PlaySound(SOUND_LABEL_BGM4);
+						PlaySound(g_Sound);
 						g_bPause = !g_bPause;
 						break;
 					case SELECT_RETRY:
@@ -374,7 +373,7 @@ void UpdatePause(void)
 				if (GetdJoykeyTrigger(ELEKEY_BACK, (CONTROLLER)i) == true)
 				{
 					SetGameState(GAMESTATE_NORMAL);
-					PlaySound(SOUND_LABEL_BGM4);
+					PlaySound(g_Sound);
 					g_bPause = !g_bPause;
 				}
 				else if (GetdJoykeyTrigger(ELEKEY_A, (CONTROLLER)i) == true)
@@ -384,7 +383,7 @@ void UpdatePause(void)
 					{
 					case SELECT_RESTART:
 						SetGameState(GAMESTATE_NORMAL);
-						PlaySound(SOUND_LABEL_BGM4);
+						PlaySound(g_Sound);
 						g_bPause = !g_bPause;
 						break;
 					case SELECT_RETRY:
@@ -515,7 +514,7 @@ void UpdatePause(void)
 				if (GetdJoykeyTrigger(PSKEY_BACK, (CONTROLLER)i) == true)
 				{
 					SetGameState(GAMESTATE_NORMAL);
-					PlaySound(SOUND_LABEL_BGM4);
+					PlaySound(g_Sound);
 					g_bPause = !g_bPause;
 				}
 				else if (GetdJoykeyTrigger(PSKEY_CI, (CONTROLLER)i) == true)
@@ -525,7 +524,7 @@ void UpdatePause(void)
 					{
 					case SELECT_RESTART:
 						SetGameState(GAMESTATE_NORMAL);
-						PlaySound(SOUND_LABEL_BGM4);
+						PlaySound(g_Sound);
 						g_bPause = !g_bPause;
 						break;
 					case SELECT_RETRY:
@@ -653,7 +652,7 @@ void UpdatePause(void)
 					if (GetdJoykeyTrigger(NINKEY_－, (CONTROLLER)i) == true)
 					{
 						SetGameState(GAMESTATE_NORMAL);
-						PlaySound(SOUND_LABEL_BGM4);
+						PlaySound(g_Sound);
 						g_bPause = !g_bPause;
 					}
 					else if (GetdJoykeyTrigger(NINKEY_A, (CONTROLLER)i) == true)
@@ -663,7 +662,7 @@ void UpdatePause(void)
 						{
 						case SELECT_RESTART:
 							SetGameState(GAMESTATE_NORMAL);
-							PlaySound(SOUND_LABEL_BGM4);
+							PlaySound(g_Sound);
 							g_bPause = !g_bPause;
 							break;
 						case SELECT_RETRY:
@@ -792,7 +791,7 @@ void UpdatePause(void)
 					if (GetdJoykeyTrigger(DKEY_BACK, (CONTROLLER)i) == true)
 					{
 						SetGameState(GAMESTATE_NORMAL);
-						PlaySound(SOUND_LABEL_BGM4);
+						PlaySound(g_Sound);
 						g_bPause = !g_bPause;
 					}
 					else if (GetdJoykeyTrigger(DKEY_A, (CONTROLLER)i) == true)
@@ -802,7 +801,7 @@ void UpdatePause(void)
 						{
 						case SELECT_RESTART:
 							SetGameState(GAMESTATE_NORMAL);
-							PlaySound(SOUND_LABEL_BGM4);
+							PlaySound(g_Sound);
 							g_bPause = !g_bPause;
 							break;
 						case SELECT_RETRY:
@@ -968,8 +967,9 @@ void DrawPause(void)
 //--------------------
 //ポーズ
 //--------------------
-void Pause(void)
+void Pause(SOUND_LABEL label)
 {
+	g_Sound = label;
 	g_bPause = !g_bPause;
 }
 

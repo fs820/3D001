@@ -14,8 +14,10 @@
 #define GAME_WALL (3000.0f)//大人の壁
 #define GRAVITY (-1.2f)//重力
 #define TEXTURE_NUMBER "data\\TEXTURE\\number000.png"
-#define TIME_LIMIT (60)
+#define TIME_LIMIT (120)
 #define FRAME (60)
+#define HOUR (24)
+#define MINUTE (60)
 
 //ゲーム状態の列挙型定義
 typedef enum
@@ -42,6 +44,10 @@ void UpdateGame(void);//ゲームの更新処理
 void DrawGame(void);//ゲームの描画処理
 void SetGameState(GAMESTATE state);//ゲームの状態設定
 GAMESTATE GetGameState(void);//ゲーム状態取得
+bool GetbSnow(void);
 bool GetClear(void);
+int GetClearTime(void);
+int GetTime(void);
+void TimeReset(void);
 
 #endif _GAME_H_

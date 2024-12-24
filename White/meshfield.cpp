@@ -7,11 +7,14 @@
 
 #include"meshfield.h"
 #include"player.h"
+#include"Dog.h"
+#include"Crow.h"
+#include"snowball.h"
 
 //グローバル変数宣言
 LPDIRECT3DVERTEXBUFFER9 g_pVtxBuffMeshField = NULL;//バッファのポインタ
 LPDIRECT3DINDEXBUFFER9 g_pIdxBuffMeshField = NULL;//インデックスバッファのポインタ
-LPDIRECT3DTEXTURE9 g_pTextureMeshField = NULL;
+LPDIRECT3DTEXTURE9 g_pTextureMeshField[MESHFIELD_TEX_MAX] = { NULL };
 MeshField g_aMeshField[MESHFIELD_MAX];
 
 //----------------------
@@ -40,7 +43,15 @@ void InitMeshField(void)
 	(
 		pDevice,
 		MESHFIELD_TEX,
-		&g_pTextureMeshField
+		&g_pTextureMeshField[0]
+	);
+
+	//テクスチャの読み込み
+	D3DXCreateTextureFromFile
+	(
+		pDevice,
+		MESHFIELD_TEX2,
+		&g_pTextureMeshField[1]
 	);
 
 	//インデックスバッファの生成
@@ -112,11 +123,14 @@ void InitMeshField(void)
 //-------------------
 void UninitMeshField(void)
 {
-	//テクスチャの破棄
-	if (g_pTextureMeshField != NULL)
+	for (int nCnt = 0; nCnt < MESHFIELD_TEX_MAX; nCnt++)
 	{
-		g_pTextureMeshField->Release();
-		g_pTextureMeshField = NULL;
+		//テクスチャの破棄
+		if (g_pTextureMeshField[nCnt] != NULL)
+		{
+			g_pTextureMeshField[nCnt]->Release();
+			g_pTextureMeshField[nCnt] = NULL;
+		}
 	}
 	//頂点バッファの破棄
 	if (g_pVtxBuffMeshField != NULL)
@@ -137,7 +151,10 @@ void UninitMeshField(void)
 //-------------------
 void UpdateMeshField(void)
 {
-	CollisionMeshField();
+	if (GetMode() == MODE_GAME)
+	{
+		CollisionMeshField();
+	}
 }
 
 //-------------------
@@ -180,7 +197,7 @@ void DrawMeshField(void)
 			pDevice->SetFVF(FVF_VERTEX_3D);
 
 			//テクスチャの設定
-			pDevice->SetTexture(0, g_pTextureMeshField);
+			pDevice->SetTexture(0, g_pTextureMeshField[GetbSnow()]);
 
 			//ポリゴンの描画
 			pDevice->DrawIndexedPrimitive
@@ -215,12 +232,23 @@ void SetMeshField(D3DXVECTOR3 pos, D3DXVECTOR3 rot)
 	}
 }
 
+//---------------------------
+//取得
+//---------------------------
+MeshField* GetMeshField(void)
+{
+	return &g_aMeshField[0];
+}
+
 //----------------------
 //当たり判定
 //----------------------
 void CollisionMeshField(void)
 {
 	Player* pPlayer = GetPlayer();
+	Dog* pDog = GetDog();
+	Crow* pCrow = GetCrow();
+	SnowBall* pSnowBall = GetSnowBall();
 	D3DXVECTOR3 aPos[2] = {}, Fieldvec = {}, Posvec = {}, PosOldvec = {}, movevec = {}, Norvec = {}, Dovec = {}, Hit = {};
 	int nCntMeshField;
 	float FieldCross, PosCross;
@@ -230,6 +258,7 @@ void CollisionMeshField(void)
 		{//使っている透明でない壁
 			aPos[0] = D3DXVECTOR3(g_aMeshField[nCntMeshField].pos.x + MESHFIELD_WIDTH * 0.5f * sinf(g_aMeshField[nCntMeshField].rot.z + D3DX_PI * -0.5f), g_aMeshField[nCntMeshField].pos.y + MESHFIELD_WIDTH * 0.5f * cosf(g_aMeshField[nCntMeshField].rot.z + D3DX_PI * 0.5f), g_aMeshField[nCntMeshField].pos.z);
 			aPos[1] = D3DXVECTOR3(g_aMeshField[nCntMeshField].pos.x + MESHFIELD_WIDTH * 0.5f * sinf(g_aMeshField[nCntMeshField].rot.z + D3DX_PI * 0.5f), g_aMeshField[nCntMeshField].pos.y + MESHFIELD_WIDTH * 0.5f * cosf(g_aMeshField[nCntMeshField].rot.z + D3DX_PI * -0.5f), g_aMeshField[nCntMeshField].pos.z);
+
 			Fieldvec = aPos[1] - aPos[0];//壁のベクトル
 			Posvec = pPlayer->pos - aPos[0];//壁に対するプレイヤーのベクトル
 			PosOldvec = pPlayer->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
@@ -252,6 +281,103 @@ void CollisionMeshField(void)
 					if (pPlayer->motionType == MOTIONTYPE_JUMP)
 					{
 						pPlayer->motionType = MOTIONTYPE_LANDING;
+					}
+				}
+			}
+
+			pDog = GetDog();
+			for (int nCntDog = 0; nCntDog < MAX_DOG; nCntDog++, pDog++)
+			{
+				if (pDog->bUse)
+				{
+					Fieldvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pDog->pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = pDog->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pDog->pos - pDog->posOld;//プレイヤーの移動ベクトル
+					if ((Fieldvec.x * Posvec.y) - (Fieldvec.y * Posvec.x) <= 0.0f && (Fieldvec.x * PosOldvec.y) - (Fieldvec.y * PosOldvec.x) >= 0.0f && pDog->pos.z < g_aMeshField[nCntMeshField].pos.z + MESHFIELD_WIDTH * 0.5f && pDog->pos.z > g_aMeshField[nCntMeshField].pos.z - MESHFIELD_WIDTH * 0.5f)
+					{//地面の下
+						FieldCross = (Fieldvec.x * movevec.y) - (Fieldvec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= FieldCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Fieldvec * PosCross;
+							movevec = pDog->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Fieldvec.y, -Fieldvec.x, Fieldvec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pDog->pos += Dovec * 1.001f;
+							pDog->move.y = 0.0f;
+							pDog->bJump = false;
+							if (pDog->motionType == MOTIONTYPE_JUMP)
+							{
+								pDog->motionType = MOTIONTYPE_LANDING;
+							}
+						}
+					}
+				}
+			}
+
+			pCrow = GetCrow();
+			for (int nCntCrow = 0; nCntCrow < MAX_CROW; nCntCrow++, pCrow++)
+			{
+				if (pCrow->bUse)
+				{
+					Fieldvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pCrow->pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = pCrow->posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pCrow->pos - pCrow->posOld;//プレイヤーの移動ベクトル
+					if ((Fieldvec.x * Posvec.y) - (Fieldvec.y * Posvec.x) <= 0.0f && (Fieldvec.x * PosOldvec.y) - (Fieldvec.y * PosOldvec.x) >= 0.0f && pCrow->pos.z < g_aMeshField[nCntMeshField].pos.z + MESHFIELD_WIDTH * 0.5f && pCrow->pos.z > g_aMeshField[nCntMeshField].pos.z - MESHFIELD_WIDTH * 0.5f)
+					{//地面の下
+						FieldCross = (Fieldvec.x * movevec.y) - (Fieldvec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= FieldCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Fieldvec * PosCross;
+							movevec = pCrow->pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Fieldvec.y, -Fieldvec.x, Fieldvec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pCrow->pos += Dovec * 1.001f;
+							pCrow->move.y = 0.0f;
+							pCrow->bJump = false;
+							if (pCrow->motionType == MOTIONTYPE_JUMP)
+							{
+								pCrow->motionType = MOTIONTYPE_LANDING;
+							}
+						}
+					}
+				}
+			}
+
+			pSnowBall = GetSnowBall();
+			for (int nCntSnowBall = 0; nCntSnowBall < SNOWBALL_MAX; nCntSnowBall++, pSnowBall++)
+			{
+				if (pSnowBall->bUse)
+				{
+					D3DXVECTOR3 pos = pSnowBall->pos,posOld= pSnowBall->posOld;
+					pos.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					posOld.y -= SNOWBALL_RADIUS * pSnowBall->scale.y;
+					Fieldvec = aPos[1] - aPos[0];//壁のベクトル
+					Posvec = pos - aPos[0];//壁に対するプレイヤーのベクトル
+					PosOldvec = posOld - aPos[0];//壁に対するプレイヤーの旧ベクトル
+					movevec = pos - posOld;//プレイヤーの移動ベクトル
+					if ((Fieldvec.x * Posvec.y) - (Fieldvec.y * Posvec.x) <= 0.0f && (Fieldvec.x * PosOldvec.y) - (Fieldvec.y * PosOldvec.x) >= 0.0f && pos.z < g_aMeshField[nCntMeshField].pos.z + MESHFIELD_WIDTH * 0.5f && pos.z > g_aMeshField[nCntMeshField].pos.z - MESHFIELD_WIDTH * 0.5f)
+					{//地面の下
+						FieldCross = (Fieldvec.x * movevec.y) - (Fieldvec.y * movevec.x);
+						PosCross = (Posvec.x * movevec.y) - (Posvec.y * movevec.x);
+						PosCross /= FieldCross;
+						if (PosCross >= -0.01f && PosCross < 1.01f)
+						{
+							Hit = aPos[0] + Fieldvec * PosCross;
+							movevec = pos - Hit;//プレイヤーの移動ベクトル
+							Norvec = D3DXVECTOR3(Fieldvec.y, -Fieldvec.x, Fieldvec.z);
+							D3DXVec3Normalize(&Norvec, &Norvec);
+							Dovec = Norvec * ((-movevec.x * Norvec.x) + (-movevec.y * Norvec.y));
+							pSnowBall->pos += Dovec * 1.001f;
+							pSnowBall->move.y = 0.0f;
+						}
 					}
 				}
 			}
